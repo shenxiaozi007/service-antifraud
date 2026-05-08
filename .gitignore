@@ -1,17 +1,31 @@
+# Composer
 composer.phar
 composer-setup.php
 .composer-cn/
+vendor/
 
-.DS_Store
+# Node / frontend
 node_modules/
 dist/
+build/
 .vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment
 .env
 .env.local
 .env.*.local
 !.env.example
 !.env.production.example
 
-apps/client/node_modules/
-apps/client/dist/
-apps/client/.vite/
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Test / cache
+.phpunit.result.cache

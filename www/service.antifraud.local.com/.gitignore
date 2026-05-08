@@ -1,6 +1,20 @@
-/vendor
-/.idea
+# Composer
+/vendor/
+composer.phar
+composer-setup.php
+
+# IDE / local
+/.idea/
+/.vscode/
 Homestead.json
 Homestead.yaml
+
+# Environment / cache
 .env
+.env.local
+.env.*.local
 .phpunit.result.cache
+
+# OS
+.DS_Store
+Thumbs.db
