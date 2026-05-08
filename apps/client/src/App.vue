@@ -10,8 +10,8 @@ onLaunch(() => {
 <style>
 page {
   min-height: 100%;
-  background: #f3f6f2;
-  color: #24312a;
+  background: #f5f5f7;
+  color: #1d1d1f;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
   font-size: 30rpx;
 }

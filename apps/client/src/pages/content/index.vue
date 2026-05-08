@@ -49,7 +49,7 @@ onLoad((options) => {
 }
 
 .paragraph {
-  color: #48534d;
+  color: #424245;
   line-height: 1.7;
   margin-bottom: 20rpx;
 }

@@ -124,12 +124,19 @@ function clearTimer() {
 .recorder {
   text-align: center;
   margin-bottom: 28rpx;
+  background: linear-gradient(145deg, #1d1d1f, #3a3a3c);
+  color: #ffffff;
+  box-shadow: 0 22rpx 54rpx rgba(29, 29, 31, 0.22);
+}
+
+.recorder .muted {
+  color: rgba(255, 255, 255, 0.68);
 }
 
 .timer {
   font-size: 72rpx;
   font-weight: 800;
-  color: #d87845;
+  color: #ffd60a;
   margin-bottom: 12rpx;
 }
 
@@ -143,7 +150,7 @@ function clearTimer() {
 }
 
 .cost {
-  color: #7b837e;
+  color: #86868b;
   margin: 28rpx 0 18rpx;
   text-align: center;
 }

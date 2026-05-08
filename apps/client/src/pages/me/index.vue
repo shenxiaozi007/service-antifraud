@@ -91,13 +91,14 @@ function clearLocal() {
   align-items: center;
   gap: 24rpx;
   margin-bottom: 28rpx;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(245, 245, 247, 0.9));
 }
 
 .avatar {
   width: 104rpx;
   height: 104rpx;
   border-radius: 52rpx;
-  background: #1f8a5b;
+  background: linear-gradient(145deg, #0071e3, #62a8ff);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -115,12 +116,12 @@ function clearLocal() {
   margin-left: auto;
   font-size: 52rpx;
   font-weight: 800;
-  color: #1f8a5b;
+  color: #0071e3;
 }
 
 .menu-item {
   padding: 30rpx 0;
-  border-bottom: 1rpx solid #edf0ed;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.08);
 }
 
 .menu-item:last-child {
@@ -128,7 +129,7 @@ function clearLocal() {
 }
 
 .danger {
-  color: #cf2c2c;
+  color: #d70015;
 }
 
 .block-title {
@@ -138,12 +139,12 @@ function clearLocal() {
 }
 
 .minus {
-  color: #cf2c2c;
+  color: #d70015;
   font-weight: 700;
 }
 
 .plus {
-  color: #1f8a5b;
+  color: #34c759;
   font-weight: 700;
 }
 </style>

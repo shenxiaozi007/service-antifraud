@@ -83,14 +83,16 @@ function goReport(recordId: number) {
   flex-shrink: 0;
   padding: 16rpx 26rpx;
   border-radius: 30rpx;
-  background: #ffffff;
-  color: #66706a;
+  background: rgba(255, 255, 255, 0.88);
+  color: #6e6e73;
   font-size: 26rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
 }
 
 .filter.active {
-  background: #1f8a5b;
+  background: #1d1d1f;
   color: #ffffff;
+  border-color: #1d1d1f;
 }
 
 .record-title {

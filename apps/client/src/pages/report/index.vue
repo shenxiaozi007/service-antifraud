@@ -90,7 +90,7 @@ onShareAppMessage(() => ({
 
 .summary {
   margin-top: 18rpx;
-  color: #48534d;
+  color: #424245;
   line-height: 1.6;
 }
 
@@ -107,7 +107,7 @@ onShareAppMessage(() => ({
 
 .risk-item {
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #edf0ed;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.08);
 }
 
 .risk-item:last-child {
@@ -121,9 +121,9 @@ onShareAppMessage(() => ({
 .evidence {
   margin-top: 12rpx;
   padding: 18rpx;
-  border-radius: 12rpx;
-  background: #f6f8f6;
-  color: #48534d;
+  border-radius: 18rpx;
+  background: #f5f5f7;
+  color: #424245;
 }
 
 .meta {
@@ -132,7 +132,7 @@ onShareAppMessage(() => ({
 
 .disclaimer {
   margin-top: 18rpx;
-  color: #7b837e;
+  color: #86868b;
   font-size: 24rpx;
   line-height: 1.6;
 }
@@ -150,10 +150,11 @@ onShareAppMessage(() => ({
   height: 92rpx;
   border: 0;
   border-radius: 46rpx;
-  background: #1f8a5b;
+  background: #0071e3;
   color: #ffffff;
   font-size: 32rpx;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 92rpx;
+  box-shadow: 0 12rpx 28rpx rgba(0, 113, 227, 0.22);
 }
 </style>

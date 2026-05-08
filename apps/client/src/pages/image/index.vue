@@ -105,6 +105,8 @@ async function submit() {
 .upload {
   text-align: center;
   margin-bottom: 24rpx;
+  border-style: dashed;
+  box-shadow: none;
 }
 
 .plus {
@@ -112,8 +114,8 @@ async function submit() {
   height: 96rpx;
   margin: 0 auto 16rpx;
   border-radius: 48rpx;
-  background: #eef4ef;
-  color: #1f8a5b;
+  background: rgba(0, 113, 227, 0.1);
+  color: #0071e3;
   font-size: 72rpx;
   line-height: 88rpx;
 }
@@ -134,8 +136,9 @@ async function submit() {
   position: relative;
   width: 196rpx;
   height: 196rpx;
-  border-radius: 16rpx;
+  border-radius: 24rpx;
   overflow: hidden;
+  box-shadow: 0 12rpx 32rpx rgba(0, 0, 0, 0.12);
 }
 
 .thumb image {
@@ -149,13 +152,14 @@ async function submit() {
   bottom: 8rpx;
   padding: 8rpx 14rpx;
   border-radius: 20rpx;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.62);
   color: #fff;
   font-size: 22rpx;
+  backdrop-filter: blur(12rpx);
 }
 
 .cost {
-  color: #7b837e;
+  color: #86868b;
   margin: 28rpx 0 18rpx;
   text-align: center;
 }
