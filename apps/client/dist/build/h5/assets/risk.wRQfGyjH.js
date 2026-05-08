@@ -1,0 +1,1 @@
+const t={low:"低风险",medium:"中风险",high:"高风险",critical:"极高风险"};function i(i){return t[i]||"未知"}function r(t){return"critical"===t?"critical":"high"===t?"high":"medium"===t?"medium":""}function n(t){const i=Number(t||0);return`${String(Math.floor(i/60)).padStart(2,"0")}:${String(i%60).padStart(2,"0")}`}export{r as a,n as d,i as r};

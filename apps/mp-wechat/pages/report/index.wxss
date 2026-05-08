@@ -1,0 +1,82 @@
+.report-title {
+  margin-top: 26rpx;
+  font-size: 42rpx;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.summary {
+  margin-top: 18rpx;
+  color: #48534d;
+  line-height: 1.6;
+}
+
+.block-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  margin-bottom: 18rpx;
+}
+
+.advice {
+  line-height: 1.7;
+  margin-bottom: 10rpx;
+}
+
+.risk-item {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #edf0ed;
+}
+
+.risk-item:last-child {
+  border-bottom: none;
+}
+
+.risk-name {
+  font-weight: 700;
+}
+
+.evidence {
+  margin-top: 12rpx;
+  padding: 18rpx;
+  border-radius: 12rpx;
+  background: #f6f8f6;
+  color: #48534d;
+}
+
+.meta {
+  line-height: 1.8;
+}
+
+.disclaimer {
+  margin-top: 18rpx;
+  color: #7b837e;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.actions {
+  align-items: stretch;
+}
+
+.actions .button,
+.share {
+  flex: 1;
+}
+
+.share {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 92rpx;
+  border: 0;
+  border-radius: 46rpx;
+  background: #1f8a5b;
+  color: #ffffff;
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 92rpx;
+}
+
+.share::after {
+  border: 0;
+}

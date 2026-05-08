@@ -1,0 +1,32 @@
+<view class="page">
+  <view class="section">
+    <view class="title">上传宣传材料</view>
+    <view class="subtitle">拍摄或上传聊天截图、海报、合同、付款页面。MVP 联调可在下方补充识别文字。</view>
+  </view>
+
+  <view class="card upload" bindtap="chooseImage">
+    <view class="plus">+</view>
+    <view class="upload-text">拍照 / 选择图片</view>
+    <view class="muted">已选图片：{{images.length}}/3</view>
+  </view>
+
+  <view class="thumbs" wx:if="{{images.length}}">
+    <block wx:for="{{images}}" wx:key="path">
+      <view class="thumb">
+        <image src="{{item.path}}" mode="aspectFill"></image>
+        <view class="remove" data-index="{{index}}" catchtap="removeImage">删除</view>
+      </view>
+    </block>
+  </view>
+
+  <view class="card section">
+    <view class="row">
+      <view class="feature-title">风险文本</view>
+      <view class="tag">联调用</view>
+    </view>
+    <textarea class="textarea" placeholder="可粘贴截图里的宣传话术，如：保证收益、稳赚不赔、名额有限" value="{{text}}" bindinput="onTextInput"></textarea>
+  </view>
+
+  <view class="cost">本次将消耗 20 点</view>
+  <view class="button {{canSubmit ? '' : 'disabled'}}" bindtap="submit">开始分析</view>
+</view>

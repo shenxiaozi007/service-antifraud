@@ -1,0 +1,60 @@
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-bottom: 28rpx;
+}
+
+.avatar {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 52rpx;
+  background: #1f8a5b;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42rpx;
+  font-weight: 700;
+}
+
+.name {
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.points {
+  margin-left: auto;
+  font-size: 52rpx;
+  font-weight: 800;
+  color: #1f8a5b;
+}
+
+.menu-item {
+  padding: 30rpx 0;
+  border-bottom: 1rpx solid #edf0ed;
+}
+
+.menu-item:last-child {
+  border-bottom: none;
+}
+
+.danger {
+  color: #cf2c2c;
+}
+
+.block-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  margin-bottom: 14rpx;
+}
+
+.minus {
+  color: #cf2c2c;
+  font-weight: 700;
+}
+
+.plus {
+  color: #1f8a5b;
+  font-weight: 700;
+}

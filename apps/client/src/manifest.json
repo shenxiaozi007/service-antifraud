@@ -1,0 +1,26 @@
+{
+  "name": "防诈助手",
+  "appid": "__UNI__ANTI_FRAUD",
+  "description": "帮看帮听，识别宣传和沟通风险",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": {
+    "router": {
+      "mode": "hash"
+    },
+    "devServer": {
+      "https": false
+    }
+  },
+  "mp-weixin": {
+    "appid": "touristappid",
+    "setting": {
+      "urlCheck": false
+    },
+    "usingComponents": true
+  },
+  "app-plus": {
+    "usingComponents": true
+  }
+}

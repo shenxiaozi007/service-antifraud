@@ -1,0 +1,43 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/history/index",
+    "pages/me/index",
+    "pages/image/index",
+    "pages/audio/index",
+    "pages/report/index",
+    "pages/content/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "防诈助手",
+    "navigationBarBackgroundColor": "#f7faf7",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f3f6f2"
+  },
+  "tabBar": {
+    "color": "#66706a",
+    "selectedColor": "#1f8a5b",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/history/index",
+        "text": "历史记录"
+      },
+      {
+        "pagePath": "pages/me/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "permission": {
+    "scope.record": {
+      "desc": "用于录制需要分析的通话外放或沟通内容"
+    }
+  },
+  "sitemapLocation": "sitemap.json"
+}

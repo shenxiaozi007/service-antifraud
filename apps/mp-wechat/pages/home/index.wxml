@@ -1,0 +1,29 @@
+<view class="page home">
+  <view class="section">
+    <view class="hello">您好！</view>
+    <view class="title">帮看帮听</view>
+    <view class="subtitle">帮您判断宣传是否可信，以防上当受骗</view>
+  </view>
+
+  <view class="card feature see">
+    <view class="row">
+      <view>
+        <view class="feature-title">帮您看</view>
+        <view class="subtitle">拍照或截图，一秒看懂是真是假、值不值得买</view>
+      </view>
+      <view class="price">20点/次</view>
+    </view>
+    <view class="button" bindtap="goImage">拍照 / 截图</view>
+  </view>
+
+  <view class="card feature listen">
+    <view class="row">
+      <view>
+        <view class="feature-title">帮您听</view>
+        <view class="subtitle">录音分析对话，识破套路话术，及时提醒你</view>
+      </view>
+      <view class="price orange">10点/分钟</view>
+    </view>
+    <view class="button secondary" bindtap="goAudio">开始帮您听</view>
+  </view>
+</view>

@@ -1,0 +1,50 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="empty">正在加载报告</view>
+
+  <block wx:else>
+    <view class="card section">
+      <view class="row">
+        <view class="tag {{riskClass}}">{{riskLabel}}</view>
+        <view class="muted">{{report.analyzed_at}}</view>
+      </view>
+      <view class="report-title">{{report.title}}</view>
+      <view class="summary">{{report.summary}}</view>
+    </view>
+
+    <view class="card section">
+      <view class="block-title">建议动作</view>
+      <block wx:for="{{report.suggestions}}" wx:key="index">
+        <view class="advice">{{index + 1}}. {{item}}</view>
+      </block>
+    </view>
+
+    <view class="card section">
+      <view class="block-title">主要风险点</view>
+      <view wx:if="{{!report.risk_items.length}}" class="muted">暂未发现明显风险点</view>
+      <block wx:for="{{report.risk_items}}" wx:key="index">
+        <view class="risk-item">
+          <view class="row">
+            <view class="risk-name">{{item.category}}</view>
+            <view class="tag {{item.severity}}">{{item.severity}}</view>
+          </view>
+          <view class="muted">{{item.description}}</view>
+          <view class="evidence" wx:if="{{item.evidence_text}}">“{{item.evidence_text}}”</view>
+        </view>
+      </block>
+    </view>
+
+    <view class="card section">
+      <view class="block-title">分析信息</view>
+      <view class="meta">类型：{{report.type === 'image' ? '帮您看' : '帮您听'}}</view>
+      <view class="meta">消耗：{{report.cost_points}} 点</view>
+      <view class="meta" wx:if="{{report.image_count}}">图片：{{report.image_count}} 张</view>
+      <view class="meta" wx:if="{{report.duration_seconds}}">录音：{{durationText}}</view>
+      <view class="disclaimer">{{report.disclaimer}}</view>
+    </view>
+
+    <view class="row actions">
+      <view class="button ghost" bindtap="again">再分析一次</view>
+      <button class="share" open-type="share">分享给家人</button>
+    </view>
+  </block>
+</view>

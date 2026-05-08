@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>防诈助手 MVP 原型</title>
+  <style>
+    :root {
+      --bg: #f7f4ef;
+      --card: #ffffff;
+      --text: #282d2c;
+      --muted: #8a8f8c;
+      --line: #ece7df;
+      --green: #5b965f;
+      --green-soft: #edf6ed;
+      --orange: #cd7958;
+      --orange-soft: #fae9e3;
+      --red: #c84b3f;
+      --shadow: 0 12px 28px rgba(56, 49, 41, 0.09);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background: #e8e3dc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      padding: 28px;
+      background: #2f3633;
+      color: #fff;
+    }
+
+    .sidebar h1 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+
+    .sidebar p {
+      margin: 0 0 24px;
+      color: rgba(255, 255, 255, 0.72);
+      line-height: 1.7;
+    }
+
+    .nav {
+      display: grid;
+      gap: 10px;
+    }
+
+    .nav button {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      text-align: left;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .nav button.active {
+      background: #ffffff;
+      color: #2f3633;
+    }
+
+    .canvas {
+      display: grid;
+      place-items: start center;
+      padding: 32px;
+      overflow: auto;
+    }
+
+    .phone {
+      position: relative;
+      width: 390px;
+      min-height: 844px;
+      overflow: hidden;
+      border-radius: 34px;
+      background: var(--bg);
+      box-shadow: 0 30px 80px rgba(38, 35, 30, 0.28);
+    }
+
+    .status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 54px;
+      padding: 0 28px;
+      font-weight: 800;
+      font-size: 20px;
+    }
+
+    .signal {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 15px;
+    }
+
+    .pill {
+      border-radius: 999px;
+      background: #111;
+      color: #fff;
+      padding: 3px 7px;
+      font-size: 13px;
+    }
+
+    .page {
+      display: none;
+      min-height: 790px;
+      padding: 18px 22px 96px;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .mini-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+
+    .back {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 32px;
+      cursor: pointer;
+    }
+
+    .wechat-menu {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 8px 14px;
+      font-weight: 800;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 42px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    .hello {
+      color: var(--muted);
+      font-size: 18px;
+      margin: 22px 0 12px;
+    }
+
+    .sub {
+      margin: 18px 0 34px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .card {
+      border-radius: 8px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 22px;
+    }
+
+    .feature-head {
+      display: grid;
+      grid-template-columns: 56px 1fr auto;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .icon {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      font-size: 26px;
+      font-weight: 800;
+    }
+
+    .green-icon {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .orange-icon {
+      background: var(--orange-soft);
+      color: var(--orange);
+    }
+
+    .price {
+      border-radius: 8px;
+      background: #f3f3f1;
+      color: var(--muted);
+      padding: 8px 12px;
+      font-size: 20px;
+      white-space: nowrap;
+    }
+
+    .body-copy {
+      color: #5d6360;
+      line-height: 1.8;
+      font-size: 18px;
+      margin: 0 0 24px;
+    }
+
+    .primary-btn {
+      display: block;
+      width: 72%;
+      min-height: 56px;
+      margin: 0 auto;
+      border: 0;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .green-btn {
+      background: var(--green);
+    }
+
+    .orange-btn {
+      background: var(--orange);
+    }
+
+    .ghost-btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+    }
+
+    .tabbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      align-items: center;
+      height: 84px;
+      border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.94);
+    }
+
+    .tabbar button {
+      height: 62px;
+      margin: 0 8px;
+      border: 0;
+      border-radius: 24px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .tabbar button.active {
+      background: var(--green);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .upload-box {
+      display: grid;
+      place-items: center;
+      min-height: 190px;
+      border: 2px dashed #d8d1c8;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.6);
+      text-align: center;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .plus {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--green);
+      font-size: 42px;
+      font-weight: 600;
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      margin: 18px 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .risk-badge {
+      display: inline-grid;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--orange-soft);
+      color: #b84f35;
+      padding: 12px 18px;
+      font-weight: 900;
+      font-size: 24px;
+    }
+
+    .report-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: start;
+      margin-bottom: 22px;
+    }
+
+    .report-title {
+      font-size: 25px;
+      font-weight: 900;
+      line-height: 1.35;
+      margin-bottom: 8px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .section-title {
+      margin: 22px 0 12px;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .risk-list {
+      display: grid;
+      gap: 14px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      color: #4f5553;
+      line-height: 1.65;
+      font-size: 17px;
+    }
+
+    .risk-list li {
+      position: relative;
+      padding-left: 20px;
+    }
+
+    .risk-list li::before {
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--orange);
+      content: "";
+    }
+
+    .quote {
+      border-left: 4px solid var(--orange);
+      background: #fff7f3;
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      color: #555;
+      line-height: 1.7;
+      margin-bottom: 10px;
+    }
+
+    .recorder {
+      display: grid;
+      place-items: center;
+      gap: 16px;
+      padding: 36px 0;
+      text-align: center;
+    }
+
+    .timer {
+      font-size: 52px;
+      font-weight: 900;
+    }
+
+    .wave {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      height: 70px;
+    }
+
+    .wave span {
+      display: block;
+      width: 8px;
+      border-radius: 999px;
+      background: var(--orange);
+    }
+
+    .wave span:nth-child(1) { height: 22px; }
+    .wave span:nth-child(2) { height: 44px; }
+    .wave span:nth-child(3) { height: 64px; }
+    .wave span:nth-child(4) { height: 36px; }
+    .wave span:nth-child(5) { height: 54px; }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .actions button {
+      min-height: 52px;
+      border-radius: 999px;
+      font-size: 17px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .filter {
+      display: flex;
+      gap: 8px;
+      margin: 22px 0;
+    }
+
+    .filter button {
+      border: 0;
+      border-radius: 999px;
+      padding: 9px 14px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .filter button.active {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .record {
+      border-bottom: 1px solid var(--line);
+      padding: 16px 0;
+    }
+
+    .record strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 18px;
+    }
+
+    .tag {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: var(--orange-soft);
+      color: #b84f35;
+      font-size: 13px;
+      font-weight: 800;
+      margin-right: 8px;
+    }
+
+    .profile-balance {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .balance-num {
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--green);
+    }
+
+    .menu-list {
+      display: grid;
+      gap: 1px;
+      overflow: hidden;
+      border-radius: 8px;
+      background: var(--line);
+      margin-top: 18px;
+    }
+
+    .menu-list button {
+      display: flex;
+      justify-content: space-between;
+      border: 0;
+      background: #fff;
+      padding: 18px;
+      color: var(--text);
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 860px) {
+      .stage {
+        display: block;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .canvas {
+        padding: 0;
+      }
+
+      .phone {
+        width: 100vw;
+        min-height: 100vh;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <aside class="sidebar">
+      <h1>防诈助手 MVP 原型</h1>
+      <p>用于评审“帮您看 / 帮您听”核心流程。左侧切换页面，手机区域展示小程序首版体验。</p>
+      <div class="nav">
+        <button class="active" data-page="home">首页</button>
+        <button data-page="imageUpload">帮您看：上传</button>
+        <button data-page="imageReport">帮您看：报告</button>
+        <button data-page="audioReady">帮您听：准备</button>
+        <button data-page="audioRecording">帮您听：录音中</button>
+        <button data-page="audioReport">帮您听：报告</button>
+        <button data-page="history">历史记录</button>
+        <button data-page="profile">我的</button>
+      </div>
+    </aside>
+
+    <main class="canvas">
+      <div class="phone">
+        <div class="status">
+          <span>9:28</span>
+          <span class="signal">▮▮▮ WiFi <span class="pill">88</span></span>
+        </div>
+
+        <section id="home" class="page active">
+          <div class="mini-nav">
+            <span></span>
+            <div class="wechat-menu">••• ◎</div>
+          </div>
+          <div class="hello">您好！</div>
+          <h2>帮看帮听</h2>
+          <p class="sub">帮您判断宣传是否可信，以防上当受骗</p>
+
+          <div class="card">
+            <div class="feature-head">
+              <div class="icon green-icon">□</div>
+              <h3>帮您看</h3>
+              <div class="price">20点/次</div>
+            </div>
+            <p class="body-copy">拍照或截图，一秒看懂是真是假、值不值得买</p>
+            <button class="primary-btn green-btn" data-page="imageUpload">拍照 / 截图</button>
+          </div>
+
+          <div class="card">
+            <div class="feature-head">
+              <div class="icon orange-icon">◉</div>
+              <h3>帮您听</h3>
+              <div class="price">10点/分钟</div>
+            </div>
+            <p class="body-copy">录音分析对话，识破套路话术，及时提醒你</p>
+            <button class="primary-btn orange-btn" data-page="audioReady">开始帮您听</button>
+          </div>
+        </section>
+
+        <section id="imageUpload" class="page">
+          <div class="mini-nav">
+            <button class="back" data-page="home">‹</button>
+            <h3>帮您看</h3>
+            <div class="wechat-menu">••• ◎</div>
+          </div>
+          <h3>上传宣传材料</h3>
+          <p class="sub">请拍摄或上传聊天截图、海报、合同、付款页面。</p>
+          <div class="upload-box">
+            <div>
+              <span class="plus">+</span>
+              拍照 / 选择图片
+            </div>
+          </div>
+          <div class="meta-row">
+            <span>已选图片：1/3</span>
+            <span>本次消耗：20点</span>
+          </div>
+          <div class="card">
+            <p class="body-copy">上传内容仅用于生成本次风险报告。你可以在历史记录中删除原始图片和分析结果。</p>
+          </div>
+          <button class="primary-btn green-btn" data-page="imageReport">开始分析</button>
+        </section>
+
+        <section id="imageReport" class="page">
+          <div class="mini-nav">
+            <button class="back" data-page="home">‹</button>
+            <h3>分析报告</h3>
+            <div class="wechat-menu">••• ◎</div>
+          </div>
+          <div class="card">
+            <div class="report-head">
+              <div>
+                <div class="report-title">疑似保本高收益投资诱导</div>
+                <div class="muted">2026-05-04 14:30</div>
+              </div>
+              <div class="risk-badge">高风险</div>
+            </div>
+            <p class="body-copy">当前内容存在明显风险信号，建议暂停付款并核实对方资质。</p>
+
+            <div class="section-title">建议动作</div>
+            <ul class="risk-list">
+              <li>不要继续转账或提供验证码。</li>
+              <li>把材料发给家人共同确认。</li>
+              <li>通过官方渠道查询对方资质。</li>
+            </ul>
+
+            <div class="section-title">主要风险点</div>
+            <ul class="risk-list">
+              <li>承诺“稳赚不赔”，属于典型保本高收益诱导。</li>
+              <li>声称有“内部渠道”，但没有可核验来源。</li>
+              <li>使用“名额有限”制造紧迫感。</li>
+            </ul>
+
+            <div class="section-title">关键证据</div>
+            <div class="quote">“稳赚不赔，亏了我们补。”</div>
+            <div class="quote">“内部渠道，今天不买就没有名额。”</div>
+          </div>
+          <div class="actions">
+            <button class="ghost-btn">分享给家人</button>
+            <button class="orange-btn" data-page="imageUpload">再分析一次</button>
+          </div>
+        </section>
+
+        <section id="audioReady" class="page">
+          <div class="mini-nav">
+            <button class="back" data-page="home">‹</button>
+            <h3>帮您听</h3>
+            <div class="wechat-menu">••• ◎</div>
+          </div>
+          <div class="card">
+            <h3>录音前提醒</h3>
+            <p class="body-copy">请将电话外放，或让手机靠近正在沟通的人声。系统会分析对话中的风险话术，仅供风险提醒参考。</p>
+            <div class="meta-row">
+              <span>当前计费</span>
+              <strong>10点/分钟</strong>
+            </div>
+            <div class="meta-row">
+              <span>当前余额</span>
+              <strong>120点</strong>
+            </div>
+          </div>
+          <button class="primary-btn orange-btn" data-page="audioRecording">开始录音</button>
+        </section>
+
+        <section id="audioRecording" class="page">
+          <div class="mini-nav">
+            <button class="back" data-page="audioReady">‹</button>
+            <h3>帮您听</h3>
+            <div class="wechat-menu">••• ◎</div>
+          </div>
+          <div class="recorder">
+            <div class="timer">00:38</div>
+            <div class="muted">正在录音</div>
+            <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+          </div>
+          <div class="card">
+            <h3>可能风险提醒</h3>
+            <p class="body-copy">检测到“保证收益”“名额有限”等风险话术。建议不要立即付款或提供验证码。</p>
+          </div>
+          <div class="actions">
+            <button class="ghost-btn">暂停</button>
+            <button class="orange-btn" data-page="audioReport">结束并分析</button>
+          </div>
+        </section>
+
+        <section id="audioReport" class="page">
+          <div class="mini-nav">
+            <button class="back" data-page="home">‹</button>
+            <h3>帮您听</h3>
+            <div class="wechat-menu">••• ◎</div>
+          </div>
+          <div class="card">
+            <button class="primary-btn ghost-btn">▶ 播放录音</button>
+          </div>
+          <div class="card">
+            <div class="report-head">
+              <div>
+                <div class="report-title">虚假内幕消息与保本承诺</div>
+                <div class="muted">2026-04-22 10:00</div>
+              </div>
+              <div class="risk-badge">高风险</div>
+            </div>
+            <p class="body-copy">当前内容有较强风险信号，建议立即提高警惕并暂停配合。</p>
+            <div class="section-title">风险点</div>
+            <ul class="risk-list">
+              <li>冒充正规机构，借权威背书诱导信任。</li>
+              <li>声称拥有内幕消息并预测涨停数量。</li>
+              <li>承诺亏损全额补差，属于典型保本高收益诱导。</li>
+              <li>利用名额稀缺和紧急感催促立即决定。</li>
+            </ul>
+            <div class="section-title">关键原文</div>
+            <div class="quote">“这个项目保证收益。”</div>
+            <div class="quote">“现在只有几个名额。”</div>
+            <div class="quote">“亏了我们给你补。”</div>
+            <div class="meta-row">
+              <span>分析时间 2026-04-22 10:00</span>
+              <span>录音时长 02:10</span>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="ghost-btn">分享给家人</button>
+            <button class="orange-btn" data-page="audioReady">再听一次</button>
+          </div>
+        </section>
+
+        <section id="history" class="page">
+          <div class="mini-nav">
+            <span></span>
+            <h3>历史记录</h3>
+            <div class="wechat-menu">••• ◎</div>
+          </div>
+          <div class="filter">
+            <button class="active">全部</button>
+            <button>高风险</button>
+            <button>图片</button>
+            <button>录音</button>
+          </div>
+          <div class="card">
+            <div class="record" data-page="audioReport">
+              <span class="tag">高风险</span><span class="muted">帮您听</span>
+              <strong>虚假内幕消息与保本承诺</strong>
+              <span class="muted">2026-04-22 10:00 · 30点</span>
+            </div>
+            <div class="record" data-page="imageReport">
+              <span class="tag">高风险</span><span class="muted">帮您看</span>
+              <strong>疑似保本高收益投资诱导</strong>
+              <span class="muted">2026-05-04 14:30 · 20点</span>
+            </div>
+          </div>
+        </section>
+
+        <section id="profile" class="page">
+          <div class="mini-nav">
+            <span></span>
+            <h3>我的</h3>
+            <div class="wechat-menu">••• ◎</div>
+          </div>
+          <div class="card">
+            <div class="profile-balance">
+              <div>
+                <div class="muted">点数余额</div>
+                <div class="balance-num">120点</div>
+              </div>
+              <button class="primary-btn green-btn" style="width: 130px; min-height: 48px; font-size: 17px;">充值</button>
+            </div>
+            <p class="body-copy">新用户赠送 30 点。帮您看 20 点/次，帮您听 10 点/分钟。</p>
+          </div>
+          <div class="menu-list">
+            <button>使用记录 <span>›</span></button>
+            <button>充值记录 <span>›</span></button>
+            <button>用户协议 <span>›</span></button>
+            <button>隐私政策 <span>›</span></button>
+            <button>联系客服 <span>›</span></button>
+            <button>删除我的数据 <span>›</span></button>
+          </div>
+        </section>
+
+        <nav class="tabbar">
+          <button class="active" data-page="home">⌂<br>首页</button>
+          <button data-page="history">↺<br>历史记录</button>
+          <button data-page="profile">♙<br>我的</button>
+        </nav>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const pageButtons = document.querySelectorAll("[data-page]");
+    const pages = document.querySelectorAll(".page");
+    const sidebarButtons = document.querySelectorAll(".sidebar [data-page]");
+    const tabButtons = document.querySelectorAll(".tabbar [data-page]");
+
+    function showPage(pageId) {
+      pages.forEach(page => page.classList.toggle("active", page.id === pageId));
+      sidebarButtons.forEach(button => button.classList.toggle("active", button.dataset.page === pageId));
+      tabButtons.forEach(button => {
+        const isMain = ["home", "history", "profile"].includes(pageId);
+        button.classList.toggle("active", isMain && button.dataset.page === pageId);
+      });
+    }
+
+    pageButtons.forEach(button => {
+      button.addEventListener("click", () => showPage(button.dataset.page));
+    });
+  </script>
+</body>
+</html>

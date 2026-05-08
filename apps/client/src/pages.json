@@ -1,0 +1,72 @@
+{
+  "pages": [
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationBarTitleText": "防诈助手"
+      }
+    },
+    {
+      "path": "pages/image/index",
+      "style": {
+        "navigationBarTitleText": "帮您看"
+      }
+    },
+    {
+      "path": "pages/audio/index",
+      "style": {
+        "navigationBarTitleText": "帮您听"
+      }
+    },
+    {
+      "path": "pages/report/index",
+      "style": {
+        "navigationBarTitleText": "分析报告"
+      }
+    },
+    {
+      "path": "pages/history/index",
+      "style": {
+        "navigationBarTitleText": "历史记录"
+      }
+    },
+    {
+      "path": "pages/me/index",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/content/index",
+      "style": {
+        "navigationBarTitleText": "说明"
+      }
+    }
+  ],
+  "tabBar": {
+    "color": "#66706a",
+    "selectedColor": "#1f8a5b",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/history/index",
+        "text": "历史记录"
+      },
+      {
+        "pagePath": "pages/me/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "防诈助手",
+    "navigationBarBackgroundColor": "#f7faf7",
+    "backgroundColor": "#f3f6f2"
+  }
+}

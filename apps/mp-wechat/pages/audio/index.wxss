@@ -1,0 +1,27 @@
+.recorder {
+  text-align: center;
+  margin-bottom: 28rpx;
+}
+
+.timer {
+  font-size: 72rpx;
+  font-weight: 800;
+  color: #d87845;
+  margin-bottom: 12rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.recorder .button {
+  margin-top: 32rpx;
+}
+
+.feature-title {
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.cost {
+  color: #7b837e;
+  margin: 28rpx 0 18rpx;
+  text-align: center;
+}

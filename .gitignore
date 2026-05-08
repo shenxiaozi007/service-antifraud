@@ -1,0 +1,17 @@
+composer.phar
+composer-setup.php
+.composer-cn/
+
+.DS_Store
+node_modules/
+dist/
+.vite/
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env.production.example
+
+apps/client/node_modules/
+apps/client/dist/
+apps/client/.vite/

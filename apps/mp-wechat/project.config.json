@@ -1,0 +1,13 @@
+{
+  "description": "防诈助手微信小程序 MVP",
+  "appid": "touristappid",
+  "projectname": "anti-fraud-assistant-mp",
+  "miniprogramRoot": "./",
+  "compileType": "miniprogram",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "postcss": true,
+    "minified": true
+  }
+}
