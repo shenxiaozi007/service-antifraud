@@ -3,7 +3,7 @@ name: Deploy to Tencent Cloud
 on:
   push:
     branches:
-      - master  # 只有推送到 master 分支时才触发
+      - master
 
 jobs:
   deploy:
@@ -18,14 +18,42 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
           script: |
-            # 注意：请根据你服务器上项目的实际绝对路径修改下面的 cd 命令
-            cd /var/www/service-antifraud
+            # 1. 定义项目根目录
+            BASE_DIR="/var/www/service-antifraud"
+            LARADOCK_DIR="/var/www/laradock"
             
-            # 拉取最新代码
-            git pull origin master
+            # 2. 同步代码
+            cd $BASE_DIR
+            git fetch --all
             
-            # 如果需要 Laradock 执行容器内指令（可选，按需取消注释）
-            # cd ../laradock
-            # docker-compose exec -T php-fpm php artisan migrate --force
+            # 获取更新前后的 composer.json 的差异状态
+            COMPOSER_CHANGED=$(git diff --name-only HEAD origin/master | grep 'composer.json' || true)
+            
+            git reset --hard origin/master
+
+            # 3. 如果 composer 有变动，则循环执行更新
+            if [ -n "$COMPOSER_CHANGED" ]; then
+              echo "检测到 composer.json 变动，开始更新依赖..."
+              
+              # 定义需要更新的子目录（相对于 BASE_DIR 的路径）
+              PROJECTS=(
+                "www/service.antifraud.local.com"
+                "www/service.storage.company.com"
+              )
+
+              cd $LARADOCK_DIR
+              
+              for PROJECT in "${PROJECTS[@]}"; do
+                echo "正在更新: $PROJECT"
+                # 在容器内执行，加上内存限制解除和缓存优化
+                docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 php-fpm \
+                  composer install --working-dir=/var/www/service-antifraud/$PROJECT \
+                  --no-dev --optimize-autoloader
+              done
+            else
+              echo "composer.json 未变动，跳过依赖更新。"
+            fi
+            
+            # 4. 后续操作（如清理 Laravel 缓存）
+            # docker-compose exec -T php-fpm php artisan config:cache
