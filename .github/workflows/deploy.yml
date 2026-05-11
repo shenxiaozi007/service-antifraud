@@ -1,0 +1,31 @@
+name: Deploy to Tencent Cloud
+
+on:
+  push:
+    branches:
+      - master  # 只有推送到 master 分支时才触发
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            # 注意：请根据你服务器上项目的实际绝对路径修改下面的 cd 命令
+            cd /var/www/service-antifraud
+            
+            # 拉取最新代码
+            git pull origin master
+            
+            # 如果需要 Laradock 执行容器内指令（可选，按需取消注释）
+            # cd ../laradock
+            # docker-compose exec -T php-fpm php artisan migrate --force
