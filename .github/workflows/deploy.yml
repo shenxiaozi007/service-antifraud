@@ -47,7 +47,7 @@ jobs:
               for PROJECT in "${PROJECTS[@]}"; do
                 echo "正在更新: $PROJECT"
                 # 在容器内执行，加上内存限制解除和缓存优化
-                docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 php-fpm \
+                docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 workspace \
                   composer install --working-dir=/var/www/service-antifraud/$PROJECT \
                   --no-dev --optimize-autoloader
               done
