@@ -2,6 +2,7 @@
 
 /** @var \Laravel\Lumen\Routing\Router $router */
 
+$router->get('system/health', 'SystemController@health');
 $router->post('auth/wechat-login', 'AuthController@wechatLogin');
 $router->get('me', 'UserController@me');
 $router->post('files/upload-token', 'FileController@uploadToken');

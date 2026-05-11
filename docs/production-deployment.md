@@ -39,13 +39,23 @@ flowchart LR
 H5 默认只依赖 API 域名，不再写死本地 `127.0.0.1:8000`。
 
 ## 后端发布流程
-1. 服务器建议使用 Docker Compose 或 Nginx + PHP-FPM + MySQL + Redis。
-2. PHP 生产版本建议使用 8.2 或 8.3；本地 PHP 8.4 可运行，但 Lumen 依赖会有兼容性弃用提示。
-3. 复制 `www/service.antifraud.local.com/.env.production.example` 为生产 `.env`，填写数据库、R2、LLM、OCR、ASR 配置。
-4. 执行 `composer install --no-dev --optimize-autoloader`。
-5. 执行 `php artisan migrate --force`。
-6. Nginx 将 `api.188144.xyz` 指向 `www/service.antifraud.local.com/public/index.php`。
-7. Cloudflare SSL 模式建议使用 Full strict，源站配置有效证书。
+仓库已提供 Docker Compose 生产部署骨架，适合单机先上线：
+
+1. 将代码发布到服务器，进入仓库根目录。
+2. 复制 `www/service.antifraud.local.com/.env.production.example` 为 `www/service.antifraud.local.com/.env`，填写 `APP_KEY`、`DB_*`、`MYSQL_*`、R2、LLM、OCR、ASR 等真实配置；使用内置 MySQL 时，`DB_DATABASE/DB_USERNAME/DB_PASSWORD` 需要和 `MYSQL_DATABASE/MYSQL_USER/MYSQL_PASSWORD` 保持一致。
+3. 若使用云数据库，把 `DB_HOST` 改成云数据库地址，并按需从 compose 中移除 `mysql` 服务。
+4. 执行 `docker compose --env-file www/service.antifraud.local.com/.env -f docs/docker/backend/docker-compose.prod.yml up -d --build`。
+5. 执行 `docker compose --env-file www/service.antifraud.local.com/.env -f docs/docker/backend/docker-compose.prod.yml exec app php artisan migrate --force`。
+6. 访问 `http://服务器IP/api/v1/system/health` 验证后端容器、Nginx 和路由正常。
+7. Cloudflare 将 `api.188144.xyz` 代理到服务器 80/443，SSL 模式建议使用 Full strict，源站配置有效证书。
+
+本地验证时如果只想使用本机已有镜像，先把 `API_HTTP_PORT` 改成未占用端口，例如 `18080`，再执行：
+
+```bash
+docker compose --env-file www/service.antifraud.local.com/.env -f docs/docker/backend/docker-compose.prod.yml up -d --build --pull never
+```
+
+非 Docker 部署也可以继续使用 Nginx + PHP-FPM + MySQL + Redis：PHP 生产版本建议使用 8.2 或 8.3，执行 `composer install --no-dev --optimize-autoloader` 后，把 Nginx root 指向 `www/service.antifraud.local.com/public`。
 
 ## Cloudflare 配置
 - DNS：

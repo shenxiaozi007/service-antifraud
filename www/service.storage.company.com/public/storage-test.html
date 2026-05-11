@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>对象存储上传测试</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #1f2937;
+            background: #f4f7fb;
+        }
+
+        main {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+
+        h1 {
+            margin: 0 0 24px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        section {
+            margin-bottom: 18px;
+            padding: 20px;
+            border: 1px solid #d9e2ef;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input,
+        select {
+            width: 100%;
+            height: 40px;
+            margin-bottom: 14px;
+            padding: 8px 10px;
+            border: 1px solid #c8d3df;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fff;
+        }
+
+        button {
+            height: 38px;
+            margin-right: 8px;
+            padding: 0 14px;
+            border: 0;
+            border-radius: 6px;
+            color: #fff;
+            background: #1265d8;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button.secondary {
+            color: #17324d;
+            background: #e7eef7;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: .55;
+        }
+
+        pre {
+            min-height: 120px;
+            overflow: auto;
+            margin: 0;
+            padding: 14px;
+            border-radius: 6px;
+            color: #d6e7ff;
+            background: #102033;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .preview {
+            width: 100%;
+            min-height: 260px;
+            border: 1px solid #d9e2ef;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        img.preview {
+            object-fit: contain;
+        }
+
+        iframe.preview {
+            height: 520px;
+        }
+
+        .hint {
+            margin: 8px 0 0;
+            color: #667085;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>对象存储上传测试</h1>
+
+    <section>
+        <label for="apiBase">接口地址</label>
+        <input id="apiBase">
+
+        <label for="disk">存储类型</label>
+        <select id="disk">
+            <option value="tencent_cos">腾讯云 COS</option>
+            <option value="cloudflare_r2">Cloudflare R2</option>
+        </select>
+
+        <label for="fileName">自定义文件名，可空</label>
+        <input id="fileName" placeholder="不填则使用原始文件名">
+
+        <label for="file">选择文件</label>
+        <input id="file" type="file">
+
+        <div class="actions">
+            <button id="uploadBtn">上传</button>
+            <button id="detailBtn" class="secondary">查详情</button>
+            <button id="urlBtn" class="secondary">取下载地址</button>
+            <button id="downloadBtn" class="secondary">下载</button>
+            <button id="previewBtn" class="secondary">预览</button>
+        </div>
+        <p class="hint">上传成功后会自动填充 file_id，下载和预览依赖对象存储配置可访问。</p>
+        <p class="hint">Cloudflare R2 如果使用 API Token 的 cfat_ 原文创建凭证，Secret Access Key 需要填写该 token 的 SHA-256 值。</p>
+    </section>
+
+    <section>
+        <label for="fileId">file_id</label>
+        <input id="fileId" placeholder="上传成功后自动填充，也可以手动输入">
+
+        <label>响应结果</label>
+        <pre id="result">{}</pre>
+    </section>
+
+    <section>
+        <label>预览</label>
+        <div id="previewBox" class="preview"></div>
+    </section>
+</main>
+
+<script>
+    const el = (id) => document.getElementById(id);
+    const state = {
+        lastFile: null,
+        lastUrl: '',
+    };
+
+    const defaultApiBase = window.location.protocol === 'file:'
+        ? 'http://127.0.0.1:8091/service/api/v1/file'
+        : `${window.location.origin}/service/api/v1/file`;
+
+    el('apiBase').value = defaultApiBase;
+
+    function api(path) {
+        return `${el('apiBase').value.replace(/\/$/, '')}/${path}`;
+    }
+
+    function show(data) {
+        el('result').textContent = JSON.stringify(data, null, 2);
+    }
+
+    function getFileId() {
+        return el('fileId').value.trim();
+    }
+
+    async function requestJson(url, options = {}) {
+        try {
+            const response = await fetch(url, options);
+            const text = await response.text();
+
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                return {
+                    http_status: response.status,
+                    raw: text,
+                };
+            }
+        } catch (e) {
+            return {
+                error: e.message,
+                hint: '请确认使用 http://127.0.0.1:8091/storage-test.html 打开，或接口地址填写为 http://127.0.0.1:8091/service/api/v1/file',
+            };
+        }
+    }
+
+    function fillFromResponse(payload) {
+        const data = payload && payload.data ? payload.data : {};
+        if (data.file_id) {
+            el('fileId').value = data.file_id;
+            if (data.mime_type || data.object_key || data.original_name) {
+                state.lastFile = data;
+            }
+        }
+        if (data.download_url) {
+            state.lastUrl = data.download_url;
+        }
+    }
+
+    el('uploadBtn').addEventListener('click', async () => {
+        const file = el('file').files[0];
+        if (!file) {
+            show({message: '请选择文件'});
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('disk', el('disk').value);
+        if (el('fileName').value.trim()) {
+            formData.append('file_name', el('fileName').value.trim());
+        }
+
+        const payload = await requestJson(api('upload'), {
+            method: 'POST',
+            body: formData,
+        });
+        fillFromResponse(payload);
+        show(payload);
+    });
+
+    el('detailBtn').addEventListener('click', async () => {
+        const payload = await requestJson(`${api('detail')}?file_id=${encodeURIComponent(getFileId())}`);
+        fillFromResponse(payload);
+        show(payload);
+    });
+
+    el('urlBtn').addEventListener('click', async () => {
+        const payload = await requestJson(`${api('download-url')}?file_id=${encodeURIComponent(getFileId())}&expires=1800`);
+        fillFromResponse(payload);
+        show(payload);
+    });
+
+    el('downloadBtn').addEventListener('click', () => {
+        if (!getFileId()) {
+            show({message: '请先上传或输入 file_id'});
+            return;
+        }
+        window.open(`${api('download')}?file_id=${encodeURIComponent(getFileId())}`, '_blank');
+    });
+
+    el('previewBtn').addEventListener('click', async () => {
+        if (!getFileId()) {
+            show({message: '请先上传或输入 file_id'});
+            return;
+        }
+
+        const detailPayload = await requestJson(`${api('detail')}?file_id=${encodeURIComponent(getFileId())}`);
+        fillFromResponse(detailPayload);
+        show(detailPayload);
+
+        const url = `${api('preview')}?file_id=${encodeURIComponent(getFileId())}`;
+        const mime = state.lastFile ? state.lastFile.mime_type : '';
+        const box = el('previewBox');
+        box.innerHTML = '';
+
+        if (!url) {
+            box.textContent = '没有可预览的 URL';
+            return;
+        }
+
+        if (mime.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.className = 'preview';
+            img.src = url;
+            img.onload = () => show(Object.assign({}, detailPayload, {preview_status: '图片预览加载成功'}));
+            img.onerror = () => show(Object.assign({}, detailPayload, {preview_status: '图片预览加载失败，请检查 /preview 接口响应'}));
+            box.appendChild(img);
+            return;
+        }
+
+        const iframe = document.createElement('iframe');
+        iframe.className = 'preview';
+        iframe.src = url;
+        box.appendChild(iframe);
+    });
+</script>
+</body>
+</html>

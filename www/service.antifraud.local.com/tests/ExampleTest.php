@@ -20,4 +20,15 @@ class ExampleTest extends TestCase
             $this->app->version(), $this->response->getContent()
         );
     }
+
+    public function test_that_health_endpoint_returns_ok()
+    {
+        $this->get('/api/v1/system/health');
+
+        $this->seeJson([
+            'code' => 0,
+            'message' => 'success',
+            'status' => 'ok',
+        ]);
+    }
 }
