@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CRM 权限树设计 | HXC</title>
+    <meta name="description" content="CRM 权限树中菜单、动作和数据范围的拆分思路。" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="article-body">
+    <canvas id="field" aria-hidden="true"></canvas><div class="noise" aria-hidden="true"></div><div class="cursor-glow" aria-hidden="true"></div><div class="scroll-progress" aria-hidden="true"><span></span></div>
+    <header class="site-header"><a class="brand spotlight" href="../index.html#top" aria-label="回到首页"><span class="brand-mark">HX</span><span class="brand-copy"><strong>HXC</strong><small>个人求职介绍</small></span></a><nav class="desktop-nav" aria-label="文章导航"><a href="../index.html#notes">知识文章</a><a href="../index.html#capabilities">能力结构</a><a href="mailto:173315279@qq.com">联系我</a></nav><button class="menu-button spotlight" type="button" aria-expanded="false" aria-controls="mobile-menu"><span>菜单</span><i aria-hidden="true"></i></button></header>
+    <nav id="mobile-menu" class="mobile-menu" aria-label="移动端导航"><a href="../index.html#notes">知识文章</a><a href="../index.html#capabilities">能力结构</a><a href="../index.html#contact">联系我</a></nav>
+    <main class="article-shell">
+      <article class="article-card spotlight">
+        <a class="back-link" href="../index.html#notes">← 返回知识文章</a>
+        <p class="section-kicker">权限设计</p>
+        <h1>CRM 权限树：菜单、动作和数据范围为什么要拆开设计</h1>
+        <p class="article-lead">业务后台的权限问题，往往不是“能不能进页面”这么简单，而是能看什么、能做什么、能影响哪些数据。</p>
+        <section><h2>菜单权限解决“看得见”</h2><p>菜单权限控制用户能进入哪些模块。它是权限系统最外层的导航边界，适合表达岗位可见范围，但不能替代具体操作控制。</p></section>
+        <section><h2>动作权限解决“能不能做”</h2><p>同一个页面里，不同角色可能有不同动作能力：创建、编辑、分配、导出、审核、关闭。把动作拆出来，可以避免页面可见后默认拥有全部能力。</p></section>
+        <section><h2>数据范围解决“影响哪些对象”</h2><p>数据权限决定一个人能看到自己的、团队的、部门的还是全部数据。它通常与组织结构、归属关系和业务规则相关，应该独立于菜单和按钮设计。</p></section>
+        <section><h2>三层拆分的好处</h2><ul><li>权限表达更接近真实组织协作。</li><li>角色变化时不必重写页面逻辑。</li><li>审计和排查更容易定位。</li><li>后续接入报表、导出和自动化任务时边界更清楚。</li></ul></section>
+        <aside class="article-callout"><strong>一句话总结</strong><p>菜单是入口，动作是能力，数据范围是边界；三者混在一起，权限系统迟早会失控。</p></aside>
+      </article>
+    </main>
+    <footer class="site-footer"><span>HXC · 权限设计</span><span><a href="mailto:173315279@qq.com">173315279@qq.com</a></span></footer><script src="../script.js"></script>
+  </body>
+</html>

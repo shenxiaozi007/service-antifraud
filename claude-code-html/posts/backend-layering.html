@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>运维自动化与稳定性 | HXC</title>
+    <meta name="description" content="从部署、监控、备份到故障恢复，整理一套可重复、可追踪、可恢复的运维体系。" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="article-body">
+    <canvas id="field" aria-hidden="true"></canvas>
+    <div class="noise" aria-hidden="true"></div>
+    <div class="cursor-glow" aria-hidden="true"></div>
+    <div class="scroll-progress" aria-hidden="true"><span></span></div>
+
+    <header class="site-header">
+      <a class="brand spotlight" href="../index.html#top" aria-label="回到首页"><span class="brand-mark">HX</span><span class="brand-copy"><strong>HXC</strong><small>个人求职介绍</small></span></a>
+      <nav class="desktop-nav" aria-label="文章导航"><a href="../index.html#notes">知识文章</a><a href="../index.html#capabilities">能力结构</a><a href="mailto:173315279@qq.com">联系我</a></nav>
+      <button class="menu-button spotlight" type="button" aria-expanded="false" aria-controls="mobile-menu"><span>菜单</span><i aria-hidden="true"></i></button>
+    </header>
+
+    <nav id="mobile-menu" class="mobile-menu" aria-label="移动端导航"><a href="../index.html#notes">知识文章</a><a href="../index.html#capabilities">能力结构</a><a href="../index.html#contact">联系我</a></nav>
+
+    <main class="article-shell">
+      <article class="article-card spotlight">
+        <a class="back-link" href="../index.html#notes">← 返回知识文章</a>
+        <p class="section-kicker">运维稳定性</p>
+        <h1>运维自动化与稳定性：从部署、监控到故障恢复的运行体系</h1>
+        <p class="article-lead">项目上线只是开始。真正考验系统的是它能不能稳定运行、快速定位问题、可靠恢复，并把每次排障经验沉淀成下一次的默认路径。</p>
+
+        <section>
+          <h2>部署要可重复</h2>
+          <p>可靠部署不是“某个人会操作”，而是环境初始化、配置检查、构建产物、发布步骤和回滚路径都能被复现。脚本、清单和流水线能减少手工操作里的随机性。</p>
+        </section>
+
+        <section>
+          <h2>监控要能回答问题</h2>
+          <p>监控不只是看 CPU、内存和磁盘。更重要的是能回答：服务是否可用、接口是否变慢、错误是否集中、任务是否堆积、依赖是否异常。指标、日志和告警要能连成排障路径。</p>
+        </section>
+
+        <section>
+          <h2>备份恢复要提前演练</h2>
+          <p>备份只有在能恢复时才有意义。关键数据需要明确备份频率、保留周期、恢复步骤和验证方式。不要等事故发生后，才第一次确认备份文件是否可用。</p>
+        </section>
+
+        <section>
+          <h2>权限和安全基线要默认存在</h2>
+          <p>运维体系要把最小权限、访问边界、密钥管理、操作留痕和风险操作确认放进日常流程。安全不是额外动作，而是系统运行的默认约束。</p>
+        </section>
+
+        <section>
+          <h2>排障经验要沉淀</h2>
+          <ul>
+            <li>故障现象：用户看到什么，系统指标出现什么变化。</li>
+            <li>定位路径：从告警、日志、链路、配置到依赖逐步收敛。</li>
+            <li>处理动作：临时止血、根因修复、回归验证。</li>
+            <li>后续改进：补监控、补文档、补自动化、补演练。</li>
+          </ul>
+        </section>
+
+        <aside class="article-callout"><strong>一句话总结</strong><p>好的运维体系不是出了问题再救火，而是让部署、监控、备份、权限和恢复在事故前就已经准备好。</p></aside>
+      </article>
+    </main>
+
+    <footer class="site-footer"><span>HXC · 运维稳定性</span><span><a href="mailto:173315279@qq.com">173315279@qq.com</a></span></footer>
+    <script src="../script.js"></script>
+  </body>
+</html>

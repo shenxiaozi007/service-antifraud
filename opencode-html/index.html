@@ -1,0 +1,1113 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HXC | Engineering Systems as Personal Brand</title>
+    <meta
+      name="description"
+      content="HXC 的沉浸式个人介绍博客：从 Obsidian 知识库提炼工程交付、团队规范、业务系统、DevOps 基础设施与 AI 工作流。"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --void: #02030a;
+        --void-2: #070912;
+        --ink: #f4f1e8;
+        --ink-soft: rgba(244, 241, 232, 0.72);
+        --ink-dim: rgba(244, 241, 232, 0.46);
+        --line: rgba(244, 241, 232, 0.14);
+        --line-strong: rgba(244, 241, 232, 0.28);
+        --cyan: #55f7ff;
+        --acid: #d7ff4f;
+        --ember: #ff6b3d;
+        --violet: #a77dff;
+        --panel: rgba(10, 13, 25, 0.58);
+        --panel-strong: rgba(16, 21, 39, 0.82);
+        --radius-sm: 0.9rem;
+        --radius-md: 1.6rem;
+        --radius-lg: 2.6rem;
+        --space-1: 0.45rem;
+        --space-2: 0.8rem;
+        --space-3: 1.2rem;
+        --space-4: 1.8rem;
+        --space-5: 2.8rem;
+        --space-6: 4.5rem;
+        --shadow-glow: 0 0 70px rgba(85, 247, 255, 0.22);
+        --font-display: "Bodoni 72", "Didot", "Songti SC", "STSong", "Microsoft YaHei UI", serif;
+        --font-body: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 20% 4%, rgba(85, 247, 255, 0.18), transparent 34rem),
+          radial-gradient(circle at 78% 16%, rgba(167, 125, 255, 0.2), transparent 28rem),
+          radial-gradient(circle at 52% 74%, rgba(255, 107, 61, 0.11), transparent 34rem),
+          linear-gradient(155deg, #02030a 0%, #060814 45%, #03040a 100%);
+        color: var(--ink);
+        font-family: var(--font-body);
+        line-height: 1.6;
+      }
+
+      body::before,
+      body::after {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        content: "";
+      }
+
+      body::before {
+        z-index: -3;
+        background-image:
+          linear-gradient(rgba(244, 241, 232, 0.048) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(244, 241, 232, 0.048) 1px, transparent 1px);
+        background-size: 92px 92px;
+        transform: perspective(700px) rotateX(58deg) translateY(-18vh) scale(1.55);
+        transform-origin: top;
+        mask-image: linear-gradient(to bottom, transparent 0%, black 12%, transparent 84%);
+      }
+
+      body::after {
+        z-index: 80;
+        opacity: 0.14;
+        mix-blend-mode: overlay;
+        background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.08) 0 1px, transparent 1px 4px);
+      }
+
+      a { color: inherit; text-decoration: none; }
+      button { font: inherit; }
+
+      #depth-field {
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        width: 100%;
+        height: 100%;
+      }
+
+      .cursor-orb {
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 90;
+        width: 18rem;
+        height: 18rem;
+        border-radius: 999px;
+        pointer-events: none;
+        background: radial-gradient(circle, rgba(85, 247, 255, 0.2), rgba(167, 125, 255, 0.075) 38%, transparent 70%);
+        mix-blend-mode: screen;
+        transform: translate3d(calc(var(--cursor-x, 50vw) - 50%), calc(var(--cursor-y, 50vh) - 50%), 0);
+        transition: opacity 180ms ease;
+        will-change: transform;
+      }
+
+      .site-shell {
+        position: relative;
+        width: min(1480px, calc(100% - clamp(1.2rem, 5vw, 5rem)));
+        margin: 0 auto;
+      }
+
+      .nav {
+        position: fixed;
+        top: var(--space-3);
+        left: 50%;
+        z-index: 70;
+        display: flex;
+        width: min(1480px, calc(100% - clamp(1.2rem, 5vw, 5rem)));
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--space-2) var(--space-3);
+        border: 1px solid rgba(244, 241, 232, 0.1);
+        border-radius: 999px;
+        background: rgba(2, 3, 10, 0.48);
+        backdrop-filter: blur(24px) saturate(130%);
+        transform: translateX(-50%);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-family: var(--font-display);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 2.55rem;
+        height: 2.55rem;
+        place-items: center;
+        border: 1px solid rgba(85, 247, 255, 0.42);
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(85, 247, 255, 0.24), transparent 65%);
+        box-shadow: 0 0 28px rgba(85, 247, 255, 0.24), inset 0 0 18px rgba(85, 247, 255, 0.16);
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: clamp(0.7rem, 2vw, 1.5rem);
+        color: var(--ink-dim);
+        font-size: 0.82rem;
+      }
+
+      .nav-links a {
+        position: relative;
+        transition: color 180ms ease;
+      }
+
+      .nav-links a::after {
+        position: absolute;
+        left: 0;
+        bottom: -0.35rem;
+        width: 0;
+        height: 1px;
+        background: var(--acid);
+        content: "";
+        transition: width 180ms ease;
+      }
+
+      .nav-links a:hover { color: var(--ink); }
+      .nav-links a:hover::after { width: 100%; }
+
+      .hero {
+        position: relative;
+        display: grid;
+        min-height: 100vh;
+        grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.54fr);
+        gap: clamp(var(--space-4), 6vw, var(--space-6));
+        align-items: center;
+        padding: clamp(7rem, 14vh, 10rem) 0 var(--space-6);
+      }
+
+      .hero::before {
+        position: absolute;
+        right: -16vw;
+        top: 17vh;
+        z-index: -1;
+        width: min(54rem, 78vw);
+        aspect-ratio: 1;
+        border: 1px solid rgba(85, 247, 255, 0.2);
+        border-radius: 50%;
+        background:
+          conic-gradient(from 120deg, transparent, rgba(85, 247, 255, 0.28), transparent 30%, rgba(215, 255, 79, 0.18), transparent 58%, rgba(167, 125, 255, 0.25), transparent),
+          radial-gradient(circle, rgba(244, 241, 232, 0.08), transparent 54%);
+        filter: blur(0.3px);
+        content: "";
+        animation: rotate-slow 28s linear infinite;
+      }
+
+      .eyebrow,
+      .section-tag,
+      .micro-label {
+        color: var(--acid);
+        font-family: var(--font-display);
+        font-size: clamp(0.72rem, 1.1vw, 0.88rem);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p { margin-top: 0; }
+
+      .hero h1 {
+        max-width: 9.8ch;
+        margin: var(--space-3) 0;
+        font-family: var(--font-display);
+        font-size: clamp(4.7rem, 13.8vw, 14rem);
+        line-height: 0.78;
+        letter-spacing: -0.1em;
+        text-transform: uppercase;
+      }
+
+      .hero h1 span {
+        display: block;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(244, 241, 232, 0.9);
+        text-shadow: 0 0 46px rgba(85, 247, 255, 0.28);
+      }
+
+      .hero-lead {
+        max-width: 48rem;
+        color: var(--ink-soft);
+        font-size: clamp(1.05rem, 1.7vw, 1.38rem);
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin-top: var(--space-4);
+      }
+
+      .action,
+      .chip {
+        position: relative;
+        display: inline-flex;
+        min-height: 3.25rem;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-1);
+        overflow: hidden;
+        border: 1px solid var(--line-strong);
+        border-radius: 999px;
+        padding: 0 var(--space-3);
+        background: rgba(244, 241, 232, 0.035);
+        color: var(--ink);
+        font-weight: 800;
+      }
+
+      .action.primary {
+        border-color: rgba(85, 247, 255, 0.48);
+        background: var(--ink);
+        color: var(--void);
+        box-shadow: var(--shadow-glow);
+      }
+
+      .action::before,
+      .project-card::before,
+      .theme-card::before,
+      .archive-row::before {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(85, 247, 255, 0.22), transparent 42%);
+        content: "";
+        transition: opacity 180ms ease;
+      }
+
+      .action:hover::before,
+      .project-card:hover::before,
+      .theme-card:hover::before,
+      .archive-row:hover::before { opacity: 1; }
+
+      .hero-console {
+        position: relative;
+        min-height: min(34rem, 70vw);
+      }
+
+      .holo-card {
+        position: absolute;
+        inset: 7% 0 auto auto;
+        width: min(28rem, 84vw);
+        min-height: 30rem;
+        overflow: hidden;
+        border: 1px solid rgba(244, 241, 232, 0.16);
+        border-radius: var(--radius-lg);
+        background:
+          linear-gradient(135deg, rgba(255,255,255,0.12), transparent 32%),
+          radial-gradient(circle at 55% 28%, rgba(85, 247, 255, 0.18), transparent 38%),
+          rgba(10, 13, 25, 0.56);
+        box-shadow: 0 30px 120px rgba(0, 0, 0, 0.55), inset 0 0 60px rgba(255,255,255,0.04);
+        backdrop-filter: blur(26px);
+        transform: rotate(-4deg);
+      }
+
+      .holo-card::before {
+        position: absolute;
+        inset: -35%;
+        background: conic-gradient(from 0deg, transparent, rgba(85, 247, 255, 0.25), transparent, rgba(215, 255, 79, 0.16), transparent);
+        content: "";
+        animation: rotate-slow 18s linear infinite;
+      }
+
+      .holo-card-inner {
+        position: absolute;
+        inset: 1px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border-radius: calc(var(--radius-lg) - 1px);
+        padding: var(--space-4);
+        background:
+          linear-gradient(180deg, rgba(4, 5, 13, 0.35), rgba(4, 5, 13, 0.86)),
+          repeating-linear-gradient(90deg, transparent 0 16px, rgba(255,255,255,0.035) 16px 17px);
+      }
+
+      .signal-meter {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--space-1);
+      }
+
+      .signal-meter span {
+        height: 7.5rem;
+        border: 1px solid rgba(244, 241, 232, 0.12);
+        border-radius: 999px;
+        background: linear-gradient(to top, var(--tone), transparent var(--stop));
+        animation: pulse-bar 2.4s ease-in-out infinite;
+        animation-delay: var(--delay);
+      }
+
+      .holo-card strong {
+        display: block;
+        font-family: var(--font-display);
+        font-size: clamp(3rem, 7vw, 5.8rem);
+        line-height: 0.78;
+        letter-spacing: -0.08em;
+      }
+
+      .holo-card small {
+        color: var(--ink-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+      }
+
+      .orbit-note {
+        position: absolute;
+        left: 0;
+        bottom: 10%;
+        width: min(18rem, 74vw);
+        border: 1px solid rgba(215, 255, 79, 0.22);
+        border-radius: var(--radius-md);
+        padding: var(--space-3);
+        background: rgba(2, 3, 10, 0.72);
+        box-shadow: 0 0 60px rgba(215, 255, 79, 0.12);
+      }
+
+      .orbit-note p {
+        margin-bottom: 0;
+        color: var(--ink-soft);
+      }
+
+      .marquee {
+        display: flex;
+        width: 100vw;
+        margin-left: 50%;
+        overflow: hidden;
+        border-block: 1px solid rgba(244, 241, 232, 0.12);
+        background: rgba(244, 241, 232, 0.03);
+        transform: translateX(-50%);
+      }
+
+      .marquee-track {
+        display: flex;
+        min-width: max-content;
+        animation: marquee 28s linear infinite;
+      }
+
+      .marquee span {
+        padding: 1.1rem 1.8rem;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(244, 241, 232, 0.55);
+        font-family: var(--font-display);
+        font-size: clamp(1.8rem, 4vw, 4rem);
+        line-height: 1;
+        letter-spacing: -0.05em;
+        text-transform: uppercase;
+      }
+
+      .section {
+        position: relative;
+        padding: clamp(5.5rem, 12vw, 11rem) 0;
+      }
+
+      .section::before {
+        position: absolute;
+        top: clamp(3rem, 8vw, 6rem);
+        right: 0;
+        color: rgba(244, 241, 232, 0.08);
+        font-family: var(--font-display);
+        font-size: clamp(4rem, 14vw, 13rem);
+        line-height: 0.8;
+        letter-spacing: -0.08em;
+        content: attr(data-index);
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(18rem, 0.55fr);
+        gap: var(--space-4);
+        align-items: end;
+        margin-bottom: var(--space-5);
+      }
+
+      .section h2 {
+        max-width: 12ch;
+        margin-bottom: 0;
+        font-family: var(--font-display);
+        font-size: clamp(3.1rem, 8vw, 8.2rem);
+        line-height: 0.82;
+        letter-spacing: -0.08em;
+        text-transform: uppercase;
+      }
+
+      .section-head p {
+        margin-bottom: 0;
+        color: var(--ink-soft);
+        font-size: clamp(1rem, 1.5vw, 1.22rem);
+      }
+
+      .identity-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr 0.9fr;
+        gap: var(--space-3);
+      }
+
+      .identity-card,
+      .theme-card,
+      .project-card,
+      .archive-row,
+      .contact-panel {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        backdrop-filter: blur(22px);
+      }
+
+      .identity-card {
+        min-height: 23rem;
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+      }
+
+      .identity-card.feature {
+        grid-row: span 2;
+        background:
+          radial-gradient(circle at 20% 0%, rgba(85, 247, 255, 0.2), transparent 42%),
+          radial-gradient(circle at 90% 90%, rgba(255, 107, 61, 0.18), transparent 44%),
+          var(--panel-strong);
+      }
+
+      .identity-card h3,
+      .theme-card h3,
+      .project-card h3 {
+        margin-bottom: var(--space-2);
+        font-family: var(--font-display);
+        font-size: clamp(1.45rem, 2.4vw, 2.8rem);
+        line-height: 0.96;
+        letter-spacing: -0.06em;
+      }
+
+      .identity-card p,
+      .theme-card p,
+      .project-card p,
+      .contact-panel p {
+        color: var(--ink-soft);
+      }
+
+      .identity-card .huge {
+        display: block;
+        margin: var(--space-4) 0;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(85, 247, 255, 0.72);
+        font-family: var(--font-display);
+        font-size: clamp(5rem, 12vw, 12rem);
+        line-height: 0.75;
+        letter-spacing: -0.1em;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1);
+        margin-top: var(--space-3);
+      }
+
+      .chip {
+        min-height: 2.35rem;
+        color: var(--ink-soft);
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .theme-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: var(--space-3);
+      }
+
+      .theme-card {
+        position: relative;
+        min-height: 24rem;
+        overflow: hidden;
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+      }
+
+      .theme-card::after {
+        position: absolute;
+        left: var(--space-4);
+        right: var(--space-4);
+        bottom: var(--space-4);
+        height: 7rem;
+        border: 1px solid rgba(244, 241, 232, 0.1);
+        border-radius: var(--radius-md);
+        background:
+          linear-gradient(135deg, transparent 0 48%, rgba(244, 241, 232, 0.12) 49% 51%, transparent 52%),
+          radial-gradient(circle at var(--node-x), var(--node-color), transparent 36%);
+        content: "";
+      }
+
+      .theme-card .num,
+      .project-card .num {
+        display: inline-block;
+        margin-bottom: var(--space-4);
+        color: var(--ink-dim);
+        font-family: var(--font-display);
+      }
+
+      .projects-lane {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: var(--space-3);
+      }
+
+      .project-card {
+        position: relative;
+        min-height: 25rem;
+        overflow: hidden;
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+      }
+
+      .project-card.featured {
+        min-height: 34rem;
+        background:
+          radial-gradient(circle at 70% 25%, rgba(85, 247, 255, 0.2), transparent 35%),
+          radial-gradient(circle at 20% 95%, rgba(215, 255, 79, 0.13), transparent 34%),
+          var(--panel-strong);
+      }
+
+      .project-stack {
+        display: grid;
+        gap: var(--space-3);
+      }
+
+      .project-card ul {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: var(--space-1);
+        margin: var(--space-4) 0 0;
+        padding: 0;
+        color: var(--ink-soft);
+        list-style: none;
+      }
+
+      .project-card li::before {
+        color: var(--acid);
+        content: "↳ ";
+      }
+
+      .project-visual {
+        position: absolute;
+        right: -6rem;
+        bottom: -8rem;
+        width: min(33rem, 80vw);
+        aspect-ratio: 1;
+        border: 1px solid rgba(85, 247, 255, 0.22);
+        border-radius: 50%;
+        background:
+          repeating-conic-gradient(from 20deg, rgba(85, 247, 255, 0.11) 0 6deg, transparent 6deg 13deg),
+          radial-gradient(circle, transparent 0 35%, rgba(85, 247, 255, 0.18) 36% 37%, transparent 38% 54%, rgba(215, 255, 79, 0.12) 55% 56%, transparent 57%);
+        animation: rotate-slow 34s linear infinite reverse;
+      }
+
+      .archive {
+        display: grid;
+        gap: var(--space-2);
+      }
+
+      .archive-row {
+        position: relative;
+        display: grid;
+        grid-template-columns: 4rem minmax(0, 1fr) auto;
+        gap: var(--space-3);
+        align-items: center;
+        overflow: hidden;
+        border-radius: var(--radius-md);
+        padding: var(--space-3);
+      }
+
+      .archive-row span:first-child {
+        color: var(--acid);
+        font-family: var(--font-display);
+      }
+
+      .archive-row strong {
+        display: block;
+        font-size: clamp(1.08rem, 2vw, 1.65rem);
+        line-height: 1.22;
+      }
+
+      .archive-row em {
+        color: var(--ink-dim);
+        font-style: normal;
+      }
+
+      .contact-panel {
+        position: relative;
+        overflow: hidden;
+        border-radius: calc(var(--radius-lg) * 1.2);
+        padding: clamp(var(--space-4), 6vw, var(--space-6));
+        background:
+          radial-gradient(circle at 15% 15%, rgba(255, 107, 61, 0.22), transparent 34%),
+          radial-gradient(circle at 88% 28%, rgba(85, 247, 255, 0.22), transparent 34%),
+          rgba(9, 11, 22, 0.78);
+      }
+
+      .contact-panel h2 {
+        max-width: 11ch;
+      }
+
+      .contact-panel::after {
+        position: absolute;
+        right: -8rem;
+        bottom: -11rem;
+        width: min(40rem, 88vw);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: conic-gradient(from 80deg, rgba(85, 247, 255, 0.2), transparent, rgba(215, 255, 79, 0.18), transparent, rgba(167, 125, 255, 0.2));
+        content: "";
+        filter: blur(2px);
+        animation: rotate-slow 22s linear infinite;
+      }
+
+      .contact-content {
+        position: relative;
+        z-index: 1;
+        max-width: 58rem;
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-3);
+        padding: var(--space-4) 0 var(--space-5);
+        color: var(--ink-dim);
+        font-size: 0.92rem;
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(34px) scale(0.985);
+        transition: opacity 780ms ease, transform 780ms cubic-bezier(.2,.8,.2,1);
+      }
+
+      .reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      @keyframes rotate-slow { to { transform: rotate(360deg); } }
+      @keyframes pulse-bar { 50% { transform: translateY(-10px); filter: brightness(1.35); } }
+      @keyframes marquee { to { transform: translateX(-50%); } }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.001ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.001ms !important;
+        }
+      }
+
+      @media (max-width: 980px) {
+        .nav { align-items: flex-start; border-radius: var(--radius-md); }
+        .nav-links { display: none; }
+        .hero,
+        .section-head,
+        .identity-grid,
+        .projects-lane { grid-template-columns: 1fr; }
+        .hero-console { min-height: 31rem; }
+        .holo-card { right: 0; left: auto; }
+        .theme-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+
+      @media (max-width: 640px) {
+        :root { --space-4: 1.35rem; --space-5: 2rem; }
+        .hero { padding-top: 8rem; }
+        .hero h1 { font-size: clamp(4rem, 22vw, 7rem); }
+        .hero-console { min-height: 26rem; }
+        .holo-card { min-height: 24rem; transform: rotate(-2deg); }
+        .orbit-note { bottom: 0; }
+        .theme-grid { grid-template-columns: 1fr; }
+        .archive-row { grid-template-columns: 1fr; }
+        .footer { flex-direction: column; }
+        .cursor-orb { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="depth-field" aria-hidden="true"></canvas>
+    <div class="cursor-orb" aria-hidden="true"></div>
+
+    <header class="nav" aria-label="主导航">
+      <a class="brand" href="#top" aria-label="回到顶部">
+        <span class="brand-mark">HX</span>
+        <span>Knowledge Systems / Personal OS</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#identity">身份</a>
+        <a href="#themes">主题</a>
+        <a href="#projects">能力</a>
+        <a href="#archive">写作</a>
+        <a href="resume.html">简历</a>
+        <a href="#contact">连接</a>
+      </nav>
+    </header>
+
+    <main id="top" class="site-shell">
+      <section class="hero">
+        <div class="hero-copy reveal">
+          <p class="eyebrow">Personal Brand Site / Static Artifact / 2026</p>
+          <h1>让交付系统<span>发光</span></h1>
+          <p class="hero-lead">
+            我把业务模型、后端架构、团队规范、CI/CD、知识库和 AI 工作流组织成一套可持续运转的工程秩序。这里不是普通简历，而是一张从本地 Obsidian 知识库提炼出的个人品牌星图。
+          </p>
+          <div class="hero-actions">
+            <a class="action primary" href="#projects">进入能力场 →</a>
+            <a class="action" href="#archive">查看知识档案</a>
+            <a class="action" href="resume.html">打开公开简历</a>
+          </div>
+        </div>
+
+        <aside class="hero-console reveal" aria-label="个人定位视觉卡片">
+          <div class="holo-card">
+            <div class="holo-card-inner">
+              <small>current signal</small>
+              <div class="signal-meter" aria-hidden="true">
+                <span style="--tone: rgba(85,247,255,.72); --stop: 88%; --delay: 0s"></span>
+                <span style="--tone: rgba(215,255,79,.68); --stop: 64%; --delay: .2s"></span>
+                <span style="--tone: rgba(255,107,61,.62); --stop: 76%; --delay: .4s"></span>
+                <span style="--tone: rgba(167,125,255,.7); --stop: 52%; --delay: .6s"></span>
+              </div>
+              <div>
+                <strong>HXC</strong>
+                <p>Engineering delivery architect with a knowledge-first operating system.</p>
+              </div>
+            </div>
+          </div>
+          <div class="orbit-note">
+            <p class="micro-label">Not a resume</p>
+            <p>更像一个黑色控制台：把隐性的经验、规范和系统设计能力，转译成可感知的品牌界面。</p>
+          </div>
+        </aside>
+      </section>
+
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          <span>CRM SYSTEMS</span><span>DEVOPS</span><span>TEAM RULES</span><span>KNOWLEDGE GRAPH</span><span>AI WORKFLOW</span><span>DELIVERY ENGINE</span>
+          <span>CRM SYSTEMS</span><span>DEVOPS</span><span>TEAM RULES</span><span>KNOWLEDGE GRAPH</span><span>AI WORKFLOW</span><span>DELIVERY ENGINE</span>
+        </div>
+      </div>
+
+      <section id="identity" class="section" data-index="01">
+        <div class="section-head reveal">
+          <div>
+            <p class="section-tag">Identity / Positioning</p>
+            <h2>不是写代码的人，是搭建秩序的人。</h2>
+          </div>
+          <p>从知识库主题看，个人优势集中在“业务理解 + 工程分层 + 团队协作 + 平台化交付”的交叉地带：既能下场做系统，也能把经验沉淀成流程、规范和可复用资产。</p>
+        </div>
+
+        <div class="identity-grid">
+          <article class="identity-card feature reveal">
+            <p class="micro-label">Personal thesis</p>
+            <span class="huge">OPS</span>
+            <h3>把复杂业务压缩成可执行路径</h3>
+            <p>关注客户运营、权限、订单、报表、分配、续保等业务对象如何进入系统，也关注系统上线后如何被团队稳定维护。</p>
+            <div class="chips">
+              <span class="chip">业务建模</span><span class="chip">系统边界</span><span class="chip">交付治理</span>
+            </div>
+          </article>
+          <article class="identity-card reveal">
+            <p class="micro-label">Tone</p>
+            <h3>克制、硬核、可落地</h3>
+            <p>知识库语言偏 SOP、规范、排障和检查清单，适合形成一种“工程控制台”式的个人表达。</p>
+          </article>
+          <article class="identity-card reveal">
+            <p class="micro-label">Edge</p>
+            <h3>在代码与团队之间补齐接口</h3>
+            <p>能把分支模型、质量门禁、CI/CD、Wiki、VPN、招聘画像串成一套组织级交付系统。</p>
+          </article>
+          <article class="identity-card reveal">
+            <p class="micro-label">Brand line</p>
+            <h3>Engineering systems made visible.</h3>
+            <p>把看不见的规则、链路、边界和经验，设计成可以被团队理解、执行、复用的结构。</p>
+          </article>
+          <article class="identity-card reveal">
+            <p class="micro-label">Mode</p>
+            <h3>AI-enhanced builder</h3>
+            <p>不把 AI 当噱头，而是把它放进整理文档、生成规范、辅助开发和知识归档的日常工作流。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="themes" class="section" data-index="02">
+        <div class="section-head reveal">
+          <div>
+            <p class="section-tag">Knowledge Themes</p>
+            <h2>知识库里的四条暗线。</h2>
+          </div>
+          <p>以下内容来自本地 Obsidian 的主题抽样，只做公开化概括：不暴露私密原文，不搬运内部细节，只提炼可以作为个人博客方向的长期主题。</p>
+        </div>
+
+        <div class="theme-grid">
+          <article class="theme-card reveal" style="--node-x: 28% 55%; --node-color: rgba(85,247,255,.3)">
+            <span class="num">01</span>
+            <h3>团队研发规范</h3>
+            <p>前端、后端、Git、分支环境、语义化提交和 PR 检查，构成团队协作的共同语言。</p>
+          </article>
+          <article class="theme-card reveal" style="--node-x: 70% 40%; --node-color: rgba(215,255,79,.28)">
+            <span class="num">02</span>
+            <h3>工程基础设施</h3>
+            <p>GitLab、Jenkins、Wiki/Confluence、OpenVPN、本地工具链，组成小团队交付底座。</p>
+          </article>
+          <article class="theme-card reveal" style="--node-x: 44% 62%; --node-color: rgba(255,107,61,.28)">
+            <span class="num">03</span>
+            <h3>业务系统设计</h3>
+            <p>围绕 CRM、客户运营、权限树、数据范围、订单与报表，沉淀业务后台的建模方法。</p>
+          </article>
+          <article class="theme-card reveal" style="--node-x: 64% 48%; --node-color: rgba(167,125,255,.3)">
+            <span class="num">04</span>
+            <h3>人才与知识资产</h3>
+            <p>招聘画像、面试题库、Onboarding、知识图谱，让团队经验不只停留在个人脑内。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="projects" class="section" data-index="03">
+        <div class="section-head reveal">
+          <div>
+            <p class="section-tag">Capabilities / Selected Systems</p>
+            <h2>能力不是标签，是可交付的系统。</h2>
+          </div>
+          <p>这些不是直接公开内部项目资料，而是从知识库中抽象出的能力组合：能做业务系统、能搭交付平台、能制定规则，也能把规则变成日常动作。</p>
+        </div>
+
+        <div class="projects-lane">
+          <article class="project-card featured reveal">
+            <span class="num">Featured / 01</span>
+            <h3>CRM 业务后台与权限模型</h3>
+            <p>把客户、销售、订单、分配、续保、报表等对象组织成可运营的后台系统；用菜单、动作、数据范围三层权限减少系统混乱。</p>
+            <ul>
+              <li>从业务口径推导数据对象和流程边界</li>
+              <li>用分层架构承接规则校验、事务和数据访问</li>
+              <li>把权限树从“能不能看”升级为“能看什么范围”</li>
+            </ul>
+            <div class="project-visual" aria-hidden="true"></div>
+          </article>
+
+          <div class="project-stack">
+            <article class="project-card reveal">
+              <span class="num">02</span>
+              <h3>研发规范与质量门禁</h3>
+              <p>以 lint、type-check、test、build 和分支策略作为交付前置条件，让质量不是上线前的临时补救。</p>
+              <ul>
+                <li>Controller / Business / DAO 分层</li>
+                <li>master / beta / dev / fix 环境映射</li>
+              </ul>
+            </article>
+            <article class="project-card reveal">
+              <span class="num">03</span>
+              <h3>DevOps 与协作平台</h3>
+              <p>搭建 GitLab、Jenkins、Wiki、VPN、端口规划和排障 SOP，让团队有稳定的构建、发布和知识入口。</p>
+              <ul>
+                <li>CI/CD 流程设计</li>
+                <li>远程接入与内网分流</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="archive" class="section" data-index="04">
+        <div class="section-head reveal">
+          <div>
+            <p class="section-tag">Writing / Archive Angle</p>
+            <h2>下一步，把知识库变成公开写作。</h2>
+          </div>
+          <p>博客不必从“今天学了什么”开始，可以从“我如何把混乱变成系统”开始。以下是适合作为个人介绍博客栏目和文章方向的公开表达。</p>
+        </div>
+
+        <div class="archive">
+          <a class="archive-row reveal" href="posts/delivery-system-api.html">
+            <span>01</span>
+            <strong>研发规范不是文档，而是团队交付系统的 API</strong>
+            <em>Team System</em>
+          </a>
+          <a class="archive-row reveal" href="posts/crm-permission-tree.html">
+            <span>02</span>
+            <strong>CRM 权限树：菜单、按钮、数据范围为什么要拆开设计</strong>
+            <em>Business Architecture</em>
+          </a>
+          <a class="archive-row reveal" href="posts/small-team-infra.html">
+            <span>03</span>
+            <strong>小团队工程底座：GitLab、Jenkins、Wiki、VPN 如何组合</strong>
+            <em>DevOps</em>
+          </a>
+          <a class="archive-row reveal" href="posts/obsidian-knowledge-os.html">
+            <span>04</span>
+            <strong>从 Obsidian 到个人知识操作系统：如何让笔记产生复利</strong>
+            <em>Knowledge OS</em>
+          </a>
+          <a class="archive-row reveal" href="posts/ai-workflow-collaborator.html">
+            <span>05</span>
+            <strong>AI 不只是写代码：它也可以成为规范、文档和排障的协作者</strong>
+            <em>AI Workflow</em>
+          </a>
+        </div>
+      </section>
+
+      <section id="contact" class="section" data-index="05">
+        <div class="contact-panel reveal">
+          <div class="contact-content">
+            <p class="section-tag">Next Step / Contact</p>
+            <h2>如果你需要一个能把系统做稳的人。</h2>
+            <p>
+              如果你正在寻找一个能把业务系统、交付规范、工程基础设施和知识工作流组织起来的人，可以直接通过邮箱联系我。当前页面是本地静态个人品牌博客入口，后续可继续扩展为作品集、公开知识库或长期写作主页。
+            </p>
+            <div class="hero-actions">
+              <a class="action primary" href="mailto:173315279@qq.com">173315279@qq.com</a>
+              <a class="action" href="#top">回到顶部 ↑</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer site-shell">
+      <span>Built locally from anonymized Obsidian themes. No private note content exposed.</span>
+      <span>Contact · <a href="mailto:173315279@qq.com">173315279@qq.com</a></span>
+    </footer>
+
+    <script>
+      const root = document.documentElement;
+      const canvas = document.querySelector('#depth-field');
+      const ctx = canvas.getContext('2d');
+      const pointer = {
+        targetX: innerWidth * 0.5,
+        targetY: innerHeight * 0.5,
+        x: innerWidth * 0.5,
+        y: innerHeight * 0.5,
+      };
+      const state = { w: 0, h: 0, ratio: 1, stars: [] };
+      const hoverState = new WeakMap();
+
+      function setPointerTarget(x, y) {
+        pointer.targetX = x;
+        pointer.targetY = y;
+      }
+
+      function syncCursor() {
+        pointer.x += (pointer.targetX - pointer.x) * 0.18;
+        pointer.y += (pointer.targetY - pointer.y) * 0.18;
+        root.style.setProperty('--cursor-x', pointer.x.toFixed(2) + 'px');
+        root.style.setProperty('--cursor-y', pointer.y.toFixed(2) + 'px');
+      }
+
+      function resize() {
+        state.ratio = Math.min(devicePixelRatio || 1, 2);
+        state.w = innerWidth;
+        state.h = innerHeight;
+        canvas.width = Math.floor(state.w * state.ratio);
+        canvas.height = Math.floor(state.h * state.ratio);
+        canvas.style.width = state.w + 'px';
+        canvas.style.height = state.h + 'px';
+        ctx.setTransform(state.ratio, 0, 0, state.ratio, 0, 0);
+        const count = Math.min(260, Math.max(110, Math.floor((state.w * state.h) / 7600)));
+        state.stars = Array.from({ length: count }, (_, index) => ({
+          x: Math.random() * state.w,
+          y: Math.random() * state.h,
+          z: Math.random() * 1 + 0.18,
+          vx: (Math.random() - 0.5) * 0.18,
+          vy: 0.16 + Math.random() * 0.42,
+          hue: index % 4,
+        }));
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, state.w, state.h);
+        syncCursor();
+        const cx = state.w * 0.5 + (pointer.x - state.w * 0.5) * 0.035;
+        const cy = state.h * 0.5 + (pointer.y - state.h * 0.5) * 0.035;
+
+        for (const star of state.stars) {
+          star.y += star.vy * star.z;
+          star.x += star.vx + (pointer.x - state.w * 0.5) * 0.00018 * star.z;
+          if (star.y > state.h + 20) star.y = -20;
+          if (star.x > state.w + 20) star.x = -20;
+          if (star.x < -20) star.x = state.w + 20;
+
+          const dx = star.x - cx;
+          const dy = star.y - cy;
+          const dist = Math.hypot(dx, dy);
+          const glow = Math.max(0, 1 - dist / 280);
+          const palette = [
+            '85, 247, 255',
+            '215, 255, 79',
+            '255, 107, 61',
+            '167, 125, 255',
+          ][star.hue];
+
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(${palette}, ${0.18 + star.z * 0.32 + glow * 0.26})`;
+          ctx.arc(star.x, star.y, 0.65 + star.z * 1.6 + glow * 2.4, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (glow > 0.2) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(${palette}, ${glow * 0.12})`;
+            ctx.moveTo(star.x, star.y);
+            ctx.lineTo(cx, cy);
+            ctx.stroke();
+          }
+        }
+        requestAnimationFrame(draw);
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) entry.target.classList.add('is-visible');
+        }
+      }, { threshold: 0.16 });
+
+      document.querySelectorAll('.reveal').forEach((el, index) => {
+        el.style.transitionDelay = Math.min(index * 55, 360) + 'ms';
+        observer.observe(el);
+      });
+
+      document.querySelectorAll('.action, .project-card, .theme-card, .archive-row').forEach((el) => {
+        hoverState.set(el, { frame: 0, x: 0, y: 0 });
+
+        el.addEventListener('pointerenter', () => {
+          const stateForEl = hoverState.get(el);
+          stateForEl.rect = el.getBoundingClientRect();
+        });
+
+        el.addEventListener('pointermove', (event) => {
+          const stateForEl = hoverState.get(el);
+          stateForEl.x = event.clientX;
+          stateForEl.y = event.clientY;
+          if (stateForEl.frame) return;
+
+          stateForEl.frame = requestAnimationFrame(() => {
+            stateForEl.frame = 0;
+            const rect = stateForEl.rect || el.getBoundingClientRect();
+            el.style.setProperty('--mx', (stateForEl.x - rect.left).toFixed(1) + 'px');
+            el.style.setProperty('--my', (stateForEl.y - rect.top).toFixed(1) + 'px');
+          });
+        }, { passive: true });
+      });
+
+      addEventListener('pointermove', (event) => setPointerTarget(event.clientX, event.clientY), { passive: true });
+      addEventListener('resize', resize);
+      syncCursor();
+      resize();
+      draw();
+    </script>
+  </body>
+</html>

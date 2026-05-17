@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HXC Resume | Backend Lead Profile</title>
+    <meta
+      name="description"
+      content="HXC 的公开化个人简历页：10+ 年服务端研发、6+ 年技术管理，聚焦 Golang/PHP 后端架构、系统重构、高并发与团队交付规范。"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --void: #02030a;
+        --void-2: #070912;
+        --ink: #f4f1e8;
+        --ink-soft: rgba(244, 241, 232, 0.72);
+        --ink-dim: rgba(244, 241, 232, 0.46);
+        --line: rgba(244, 241, 232, 0.14);
+        --line-strong: rgba(244, 241, 232, 0.28);
+        --cyan: #55f7ff;
+        --acid: #d7ff4f;
+        --ember: #ff6b3d;
+        --violet: #a77dff;
+        --panel: rgba(10, 13, 25, 0.58);
+        --panel-strong: rgba(16, 21, 39, 0.82);
+        --radius-sm: 0.9rem;
+        --radius-md: 1.6rem;
+        --radius-lg: 2.6rem;
+        --space-1: 0.45rem;
+        --space-2: 0.8rem;
+        --space-3: 1.2rem;
+        --space-4: 1.8rem;
+        --space-5: 2.8rem;
+        --space-6: 4.5rem;
+        --shadow-glow: 0 0 70px rgba(85, 247, 255, 0.22);
+        --font-display: "Bodoni 72", "Didot", "Songti SC", "STSong", "Microsoft YaHei UI", serif;
+        --font-body: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 20% 4%, rgba(85, 247, 255, 0.18), transparent 34rem),
+          radial-gradient(circle at 78% 16%, rgba(167, 125, 255, 0.2), transparent 28rem),
+          radial-gradient(circle at 52% 74%, rgba(255, 107, 61, 0.11), transparent 34rem),
+          linear-gradient(155deg, var(--void) 0%, #060814 45%, #03040a 100%);
+        color: var(--ink);
+        font-family: var(--font-body);
+        line-height: 1.72;
+      }
+
+      body::before,
+      body::after {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        content: "";
+      }
+
+      body::before {
+        z-index: -3;
+        background-image:
+          linear-gradient(rgba(244, 241, 232, 0.048) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(244, 241, 232, 0.048) 1px, transparent 1px);
+        background-size: 92px 92px;
+        transform: perspective(700px) rotateX(58deg) translateY(-18vh) scale(1.55);
+        transform-origin: top;
+        mask-image: linear-gradient(to bottom, transparent 0%, black 12%, transparent 84%);
+      }
+
+      body::after {
+        z-index: 80;
+        opacity: 0.14;
+        mix-blend-mode: overlay;
+        background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.08) 0 1px, transparent 1px 4px);
+      }
+
+      a { color: inherit; text-decoration: none; }
+      h1, h2, h3, p { margin-top: 0; }
+
+      #depth-field {
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        width: 100%;
+        height: 100%;
+      }
+
+      .cursor-orb {
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 90;
+        width: 18rem;
+        height: 18rem;
+        border-radius: 999px;
+        pointer-events: none;
+        background: radial-gradient(circle, rgba(85, 247, 255, 0.2), rgba(167, 125, 255, 0.075) 38%, transparent 70%);
+        mix-blend-mode: screen;
+        transform: translate3d(calc(var(--cursor-x, 50vw) - 50%), calc(var(--cursor-y, 50vh) - 50%), 0);
+        will-change: transform;
+      }
+
+      .site-shell {
+        position: relative;
+        width: min(1360px, calc(100% - clamp(1.2rem, 5vw, 5rem)));
+        margin: 0 auto;
+      }
+
+      .nav {
+        position: fixed;
+        top: var(--space-3);
+        left: 50%;
+        z-index: 70;
+        display: flex;
+        width: min(1360px, calc(100% - clamp(1.2rem, 5vw, 5rem)));
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--space-2) var(--space-3);
+        border: 1px solid rgba(244, 241, 232, 0.1);
+        border-radius: 999px;
+        background: rgba(2, 3, 10, 0.48);
+        backdrop-filter: blur(24px) saturate(130%);
+        transform: translateX(-50%);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-family: var(--font-display);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 2.55rem;
+        height: 2.55rem;
+        place-items: center;
+        border: 1px solid rgba(85, 247, 255, 0.42);
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(85, 247, 255, 0.24), transparent 65%);
+        box-shadow: 0 0 28px rgba(85, 247, 255, 0.24), inset 0 0 18px rgba(85, 247, 255, 0.16);
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: clamp(0.7rem, 2vw, 1.5rem);
+        color: var(--ink-dim);
+        font-size: 0.82rem;
+      }
+
+      .nav-links a {
+        position: relative;
+        transition: color 180ms ease;
+      }
+
+      .nav-links a::after {
+        position: absolute;
+        left: 0;
+        bottom: -0.35rem;
+        width: 0;
+        height: 1px;
+        background: var(--acid);
+        content: "";
+        transition: width 180ms ease;
+      }
+
+      .nav-links a:hover { color: var(--ink); }
+      .nav-links a:hover::after { width: 100%; }
+
+      .eyebrow,
+      .section-tag,
+      .micro-label {
+        color: var(--acid);
+        font-family: var(--font-display);
+        font-size: clamp(0.72rem, 1.1vw, 0.88rem);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .hero {
+        position: relative;
+        display: grid;
+        min-height: 92vh;
+        grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.52fr);
+        gap: clamp(var(--space-4), 6vw, var(--space-6));
+        align-items: center;
+        padding: clamp(8rem, 15vh, 11rem) 0 var(--space-6);
+      }
+
+      .hero::before {
+        position: absolute;
+        right: -16vw;
+        top: 17vh;
+        z-index: -1;
+        width: min(52rem, 78vw);
+        aspect-ratio: 1;
+        border: 1px solid rgba(85, 247, 255, 0.2);
+        border-radius: 50%;
+        background:
+          conic-gradient(from 120deg, transparent, rgba(85, 247, 255, 0.28), transparent 30%, rgba(215, 255, 79, 0.18), transparent 58%, rgba(167, 125, 255, 0.25), transparent),
+          radial-gradient(circle, rgba(244, 241, 232, 0.08), transparent 54%);
+        content: "";
+        animation: rotate-slow 28s linear infinite;
+      }
+
+      .hero h1 {
+        max-width: 10ch;
+        margin: var(--space-3) 0;
+        font-family: var(--font-display);
+        font-size: clamp(4.4rem, 12vw, 12.8rem);
+        line-height: 0.78;
+        letter-spacing: -0.1em;
+        text-transform: uppercase;
+      }
+
+      .hero h1 span {
+        display: block;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(244, 241, 232, 0.9);
+        text-shadow: 0 0 46px rgba(85, 247, 255, 0.28);
+      }
+
+      .hero-lead {
+        max-width: 52rem;
+        color: var(--ink-soft);
+        font-size: clamp(1.05rem, 1.7vw, 1.38rem);
+      }
+
+      .hero-actions,
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin-top: var(--space-4);
+      }
+
+      .action,
+      .chip {
+        position: relative;
+        display: inline-flex;
+        min-height: 3.25rem;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-1);
+        overflow: hidden;
+        border: 1px solid var(--line-strong);
+        border-radius: 999px;
+        padding: 0 var(--space-3);
+        background: rgba(244, 241, 232, 0.035);
+        color: var(--ink);
+        font-weight: 800;
+      }
+
+      .action.primary {
+        border-color: rgba(85, 247, 255, 0.48);
+        background: var(--ink);
+        color: var(--void);
+        box-shadow: var(--shadow-glow);
+      }
+
+      .chip {
+        min-height: 2.35rem;
+        margin-top: 0;
+        color: var(--ink-soft);
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .action::before,
+      .profile-card::before,
+      .section-card::before,
+      .project-card::before,
+      .timeline-item::before {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(85, 247, 255, 0.22), transparent 42%);
+        content: "";
+        transition: opacity 180ms ease;
+      }
+
+      .action:hover::before,
+      .profile-card:hover::before,
+      .section-card:hover::before,
+      .project-card:hover::before,
+      .timeline-item:hover::before { opacity: 1; }
+
+      .signal-panel {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(244, 241, 232, 0.16);
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+        background:
+          linear-gradient(135deg, rgba(255,255,255,0.12), transparent 32%),
+          radial-gradient(circle at 55% 28%, rgba(85, 247, 255, 0.18), transparent 38%),
+          rgba(10, 13, 25, 0.56);
+        box-shadow: 0 30px 120px rgba(0, 0, 0, 0.55), inset 0 0 60px rgba(255,255,255,0.04);
+        backdrop-filter: blur(26px);
+      }
+
+      .signal-panel::before {
+        position: absolute;
+        inset: -40%;
+        z-index: -1;
+        background: conic-gradient(from 0deg, transparent, rgba(85, 247, 255, 0.25), transparent, rgba(215, 255, 79, 0.16), transparent);
+        content: "";
+        animation: rotate-slow 18s linear infinite;
+      }
+
+      .signal-panel strong {
+        display: block;
+        margin: var(--space-3) 0;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(85, 247, 255, 0.78);
+        font-family: var(--font-display);
+        font-size: clamp(4rem, 9vw, 8.5rem);
+        line-height: 0.76;
+        letter-spacing: -0.1em;
+      }
+
+      .signal-panel p { color: var(--ink-soft); }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-2);
+        margin-top: var(--space-4);
+      }
+
+      .metric {
+        border: 1px solid rgba(244, 241, 232, 0.12);
+        border-radius: var(--radius-md);
+        padding: var(--space-3);
+        background: rgba(2, 3, 10, 0.48);
+      }
+
+      .metric b {
+        display: block;
+        color: var(--acid);
+        font-family: var(--font-display);
+        font-size: clamp(1.8rem, 4vw, 3.4rem);
+        line-height: 0.9;
+        letter-spacing: -0.06em;
+      }
+
+      .metric span {
+        color: var(--ink-dim);
+        font-size: 0.86rem;
+      }
+
+      .section {
+        position: relative;
+        padding: clamp(4.8rem, 10vw, 9rem) 0;
+      }
+
+      .section::before {
+        position: absolute;
+        top: clamp(2.8rem, 7vw, 5.5rem);
+        right: 0;
+        color: rgba(244, 241, 232, 0.08);
+        font-family: var(--font-display);
+        font-size: clamp(4rem, 14vw, 13rem);
+        line-height: 0.8;
+        letter-spacing: -0.08em;
+        content: attr(data-index);
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(18rem, 0.55fr);
+        gap: var(--space-4);
+        align-items: end;
+        margin-bottom: var(--space-5);
+      }
+
+      .section h2 {
+        max-width: 12ch;
+        margin-bottom: 0;
+        font-family: var(--font-display);
+        font-size: clamp(3rem, 7.5vw, 7.6rem);
+        line-height: 0.82;
+        letter-spacing: -0.08em;
+        text-transform: uppercase;
+      }
+
+      .section-head p {
+        margin-bottom: 0;
+        color: var(--ink-soft);
+        font-size: clamp(1rem, 1.5vw, 1.22rem);
+      }
+
+      .profile-grid,
+      .strength-grid,
+      .project-grid,
+      .contact-grid {
+        display: grid;
+        gap: var(--space-3);
+      }
+
+      .profile-grid { grid-template-columns: 1.05fr 0.95fr; }
+      .strength-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .project-grid { grid-template-columns: 1.15fr 0.85fr; }
+      .contact-grid { grid-template-columns: minmax(0, 0.9fr) minmax(18rem, 0.45fr); }
+
+      .profile-card,
+      .section-card,
+      .project-card,
+      .timeline-item,
+      .contact-panel {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        backdrop-filter: blur(22px);
+      }
+
+      .profile-card,
+      .section-card,
+      .project-card {
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+      }
+
+      .profile-card.feature {
+        min-height: 24rem;
+        background:
+          radial-gradient(circle at 20% 0%, rgba(85, 247, 255, 0.2), transparent 42%),
+          radial-gradient(circle at 90% 90%, rgba(255, 107, 61, 0.18), transparent 44%),
+          var(--panel-strong);
+      }
+
+      .profile-card h3,
+      .section-card h3,
+      .project-card h3,
+      .timeline-item h3 {
+        margin-bottom: var(--space-2);
+        font-family: var(--font-display);
+        font-size: clamp(1.45rem, 2.4vw, 2.8rem);
+        line-height: 0.96;
+        letter-spacing: -0.06em;
+      }
+
+      .profile-card p,
+      .section-card p,
+      .project-card p,
+      .timeline-item p,
+      .contact-panel p,
+      .section-card li,
+      .project-card li,
+      .timeline-item li {
+        color: var(--ink-soft);
+      }
+
+      .huge {
+        display: block;
+        margin: var(--space-4) 0;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(85, 247, 255, 0.72);
+        font-family: var(--font-display);
+        font-size: clamp(5rem, 12vw, 11rem);
+        line-height: 0.75;
+        letter-spacing: -0.1em;
+      }
+
+      .stack-lanes {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--space-3);
+      }
+
+      .section-card ul,
+      .project-card ul,
+      .timeline-item ul {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: var(--space-1);
+        margin: var(--space-3) 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .section-card li::before,
+      .project-card li::before,
+      .timeline-item li::before {
+        color: var(--acid);
+        content: "↳ ";
+      }
+
+      .timeline {
+        position: relative;
+        display: grid;
+        gap: var(--space-3);
+      }
+
+      .timeline::before {
+        position: absolute;
+        left: 1.05rem;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: linear-gradient(to bottom, transparent, rgba(85, 247, 255, 0.45), rgba(215, 255, 79, 0.28), transparent);
+        content: "";
+      }
+
+      .timeline-item {
+        margin-left: var(--space-4);
+        border-radius: var(--radius-md);
+        padding: var(--space-4);
+      }
+
+      .timeline-item::after {
+        position: absolute;
+        left: calc(var(--space-4) * -1 - 0.06rem);
+        top: var(--space-4);
+        width: 0.9rem;
+        height: 0.9rem;
+        border: 1px solid rgba(85, 247, 255, 0.56);
+        border-radius: 50%;
+        background: var(--void);
+        box-shadow: 0 0 24px rgba(85, 247, 255, 0.32);
+        content: "";
+      }
+
+      .timeline-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1);
+        margin-bottom: var(--space-2);
+        color: var(--ink-dim);
+        font-size: 0.9rem;
+      }
+
+      .project-card.featured {
+        min-height: 34rem;
+        background:
+          radial-gradient(circle at 70% 25%, rgba(85, 247, 255, 0.2), transparent 35%),
+          radial-gradient(circle at 20% 95%, rgba(215, 255, 79, 0.13), transparent 34%),
+          var(--panel-strong);
+      }
+
+      .project-stack {
+        display: grid;
+        gap: var(--space-3);
+      }
+
+      .project-visual {
+        position: absolute;
+        right: -6rem;
+        bottom: -8rem;
+        width: min(33rem, 80vw);
+        aspect-ratio: 1;
+        border: 1px solid rgba(85, 247, 255, 0.22);
+        border-radius: 50%;
+        background:
+          repeating-conic-gradient(from 20deg, rgba(85, 247, 255, 0.11) 0 6deg, transparent 6deg 13deg),
+          radial-gradient(circle, transparent 0 35%, rgba(85, 247, 255, 0.18) 36% 37%, transparent 38% 54%, rgba(215, 255, 79, 0.12) 55% 56%, transparent 57%);
+        animation: rotate-slow 34s linear infinite reverse;
+      }
+
+      .contact-panel {
+        border-radius: calc(var(--radius-lg) * 1.2);
+        padding: clamp(var(--space-4), 6vw, var(--space-6));
+        background:
+          radial-gradient(circle at 15% 15%, rgba(255, 107, 61, 0.22), transparent 34%),
+          radial-gradient(circle at 88% 28%, rgba(85, 247, 255, 0.22), transparent 34%),
+          rgba(9, 11, 22, 0.78);
+      }
+
+      .contact-panel h2 { max-width: 12ch; }
+
+      .contact-note {
+        border: 1px solid rgba(215, 255, 79, 0.22);
+        border-radius: var(--radius-md);
+        padding: var(--space-3);
+        background: rgba(2, 3, 10, 0.72);
+        box-shadow: 0 0 60px rgba(215, 255, 79, 0.12);
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-3);
+        padding: var(--space-4) 0 var(--space-5);
+        color: var(--ink-dim);
+        font-size: 0.92rem;
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(34px) scale(0.985);
+        transition: opacity 780ms ease, transform 780ms cubic-bezier(.2,.8,.2,1);
+      }
+
+      .reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      @keyframes rotate-slow { to { transform: rotate(360deg); } }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.001ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.001ms !important;
+        }
+      }
+
+      @media (max-width: 980px) {
+        .nav { align-items: flex-start; border-radius: var(--radius-md); }
+        .nav-links { display: none; }
+        .hero,
+        .section-head,
+        .profile-grid,
+        .project-grid,
+        .contact-grid { grid-template-columns: 1fr; }
+        .strength-grid,
+        .stack-lanes,
+        .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+
+      @media (max-width: 640px) {
+        :root { --space-4: 1.35rem; --space-5: 2rem; }
+        .hero { padding-top: 8rem; }
+        .hero h1 { font-size: clamp(4rem, 22vw, 7rem); }
+        .strength-grid,
+        .stack-lanes,
+        .metric-grid { grid-template-columns: 1fr; }
+        .timeline::before { left: 0.45rem; }
+        .timeline-item { margin-left: var(--space-3); }
+        .footer { flex-direction: column; }
+        .cursor-orb { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="depth-field" aria-hidden="true"></canvas>
+    <div class="cursor-orb" aria-hidden="true"></div>
+
+    <header class="nav" aria-label="简历导航">
+      <a class="brand" href="index.html" aria-label="回到首页">
+        <span class="brand-mark">HX</span>
+        <span>Back to Personal OS</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#intention">意向</a>
+        <a href="#strengths">优势</a>
+        <a href="#stack">技术栈</a>
+        <a href="#timeline">经历</a>
+        <a href="#projects">项目</a>
+        <a href="#contact">联系</a>
+      </nav>
+    </header>
+
+    <main id="top" class="site-shell">
+      <section class="hero">
+        <div class="hero-copy reveal">
+          <p class="eyebrow">Resume Signal / Backend Lead / Golang + PHP</p>
+          <h1>后端系统<span>技术负责人</span></h1>
+          <p class="hero-lead">
+            10+ 年服务端研发经验，6+ 年技术管理经验。长期负责保险、证券、医疗、电商等复杂业务系统的后端架构、团队交付、系统重构与工程规范建设，擅长把高并发链路、第三方替换、API 标准化和 CI/CD 流程落成可维护的生产系统。
+          </p>
+          <div class="hero-actions">
+            <a class="action primary" href="#projects">查看代表项目 →</a>
+            <a class="action" href="mailto:173315279@qq.com">联系我</a>
+          </div>
+        </div>
+
+        <aside class="signal-panel reveal" aria-label="简历核心信号">
+          <p class="micro-label">Current Positioning</p>
+          <strong>LEAD</strong>
+          <p>Golang / PHP 高级后端与技术负责人：既能处理核心代码与架构边界，也能建立团队标准、质量门禁和持续交付路径。</p>
+          <div class="metric-grid">
+            <div class="metric"><b>10+</b><span>年服务端研发</span></div>
+            <div class="metric"><b>6+</b><span>年技术管理</span></div>
+            <div class="metric"><b>50%</b><span>API 效率提升</span></div>
+            <div class="metric"><b>3000+</b><span>records/sec 场景经验</span></div>
+          </div>
+        </aside>
+      </section>
+
+      <section id="intention" class="section" data-index="01">
+        <div class="section-head reveal">
+          <div>
+            <p class="section-tag">Job Intention</p>
+            <h2>目标岗位清晰：高级后端 / 技术负责人。</h2>
+          </div>
+          <p>更适合需要“能解决复杂系统问题，也能带团队建立交付秩序”的岗位：后端技术专家、Golang/PHP 高级工程师、技术经理、后端负责人或业务中台负责人。</p>
+        </div>
+
+        <div class="profile-grid">
+          <article class="profile-card feature reveal">
+            <p class="micro-label">Work Mode</p>
+            <span class="huge">API</span>
+            <h3>用工程标准承接业务增长</h3>
+            <p>关注业务模型、接口契约、系统边界、数据一致性和上线质量。面对增长期系统，优先建立可复用的服务能力、可追踪的发布链路和可执行的团队规范。</p>
+            <div class="chips">
+              <span class="chip">高级后端</span><span class="chip">技术负责人</span><span class="chip">团队交付</span>
+            </div>
+          </article>
+          <article class="profile-card reveal">
+            <p class="micro-label">Domain Fit</p>
+            <h3>适配高规则密度业务</h3>
+            <p>在保险、证券、医疗、电商等领域积累了多业务域经验，能把复杂规则拆解为流程、权限、数据、接口和任务调度等稳定模块。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="strengths" class="section" data-index="02">
+        <div class="section-head reveal">
+          <div>
+            <p class="section-tag">Core Strengths</p>
+            <h2>核心优势不是标签，是交付方式。</h2>
+          </div>
+          <p>简历内容整理为对外可读的能力面：保留关键事实与结果，不暴露不必要的内部细节。</p>
+        </div>
+
+        <div class="strength-grid">
+          <article class="section-card reveal">
+            <p class="micro-label">Architecture</p>
+            <h3>复杂后端架构</h3>
+            <p>围绕高并发、长流程、权限、订单、结算、报表和第三方接口建立清晰边界，降低系统迭代成本。</p>
+          </article>
+          <article class="section-card reveal">
+            <p class="micro-label">Refactor</p>
+            <h3>系统重构与替换</h3>
+            <p>擅长在不停摆前提下拆解历史包袱，推进第三方服务替换、接口治理和核心链路稳定性提升。</p>
+          </article>
+          <article class="section-card reveal">
+            <p class="micro-label">Delivery</p>
+            <h3>团队交付标准</h3>
+            <p>通过 API 标准化、代码分层、CI/CD、分支模型、评审机制和文档沉淀，把个人经验升级为团队操作系统。</p>
+          </article>
+          <article class="section-card reveal">
+            <p class="micro-label">Leadership</p>
+            <h3>技术管理落地</h3>
+            <p>6+ 年技术管理经验，能在需求、研发、测试、上线和复盘之间建立节奏，兼顾业务响应与长期质量。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="stack" class="section" data-index="03">
+        <div class="section-head reveal">
+          <div>
+            <p class="section-tag">Tech Stack</p>
+            <h2>技术栈围绕生产系统展开。</h2>
+          </div>
+          <p>重点不是堆叠关键词，而是用合适的语言、存储、消息、缓存和工程工具支撑稳定交付。</p>
+        </div>
+
+        <div class="stack-lanes">
+          <article class="section-card reveal">
+            <h3>Backend Core</h3>
+            <ul>
+              <li>Golang 服务开发与高并发链路设计</li>
+              <li>PHP / Laravel / Lumen 业务系统建设</li>
+              <li>RESTful API、接口契约与错误码标准</li>
+            </ul>
+          </article>
+          <article class="section-card reveal">
+            <h3>Data & Infra</h3>
+            <ul>
+              <li>MySQL 数据建模、索引与查询优化</li>
+              <li>Redis 缓存、队列削峰与任务调度</li>
+              <li>第三方接口接入、替换与稳定性治理</li>
+            </ul>
+          </article>
+          <article class="section-card reveal">
+            <h3>Team System</h3>
+            <ul>
+              <li>Git 分支规范、Code Review 与发布流程</li>
+              <li>CI/CD、自动化构建与质量门禁</li>
+              <li>Wiki / SOP / Onboarding 团队知识沉淀</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="timeline" class="section" data-index="04">
+        <div class="section-head reveal">
+          <div>
+            <p class="section-tag">Work Timeline</p>
+            <h2>从后端主力到技术负责人。</h2>
+          </div>
+          <p>不展开内部项目细节，只保留公开表达所需的职责变化、业务域和能力沉淀。</p>
+        </div>
+
+        <div class="timeline">
+          <article class="timeline-item reveal">
+            <div class="timeline-meta"><span>2017.04 - 2026.01</span><span>/</span><span>技术主管</span></div>
+            <h3>北京盛世创富证券投资顾问有限公司</h3>
+            <p>负责证券投顾业务相关系统的后端架构、团队协作与交付治理，在长期业务迭代中推进接口标准、发布流程、系统重构和质量门禁落地。</p>
+            <ul>
+              <li>建立 API 标准化与协作机制，接口效率提升 50%</li>
+              <li>承担核心服务重构、第三方能力替换与高并发链路治理</li>
+              <li>推动 CI/CD、文档沉淀和研发流程规范化</li>
+            </ul>
+          </article>
+          <article class="timeline-item reveal">
+            <div class="timeline-meta"><span>2016.03 - 2017.04</span><span>/</span><span>高级开发</span></div>
+            <h3>七乐康药业连锁有限公司</h3>
+            <p>参与医药电商与供应链相关业务系统建设，负责服务端核心模块、接口联调、数据处理与业务链路稳定性优化。</p>
+            <ul>
+              <li>参与支撑 100+ 供应商协作与月营收过千万业务场景</li>
+              <li>围绕订单、供应商、接口对接和数据流转提升系统可维护性</li>
+              <li>沉淀通用组件、联调规范和线上问题排查方法</li>
+            </ul>
+          </article>
+          <article class="timeline-item reveal">
+            <div class="timeline-meta"><span>2014.03 - 2016.03</span><span>/</span><span>开发工程师</span></div>
+            <h3>广州国顺信息科技有限公司</h3>
+            <p>从业务系统开发一线建立服务端基本功，参与需求实现、数据建模、接口开发、性能优化和上线支持。</p>
+            <ul>
+              <li>面向 3000+ records/sec 数据处理场景积累链路优化经验</li>
+              <li>形成以服务分层、接口契约和交付质量为核心的后端方法论</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="projects" class="section" data-index="05">
+        <div class="section-head reveal">
+          <div>
+            <p class="section-tag">Representative Projects</p>
+            <h2>代表项目按能力公开化呈现。</h2>
+          </div>
+          <p>以下不是内部资料复刻，而是将简历项目转译成适合公开个人主页的系统能力说明。</p>
+        </div>
+
+        <div class="project-grid">
+          <article class="project-card featured reveal">
+            <p class="micro-label">Featured / 01</p>
+            <h3>保险 / 医疗 / 电商业务中台与供应商协作</h3>
+            <p>围绕订单、客户、供应商、结算、报表和第三方能力接入构建后端服务，支持多角色协同和持续业务增长。</p>
+            <ul>
+              <li>支撑 100+ 供应商协作与月营收过千万业务场景</li>
+              <li>通过接口标准化、错误码、文档和联调流程提升协作效率</li>
+              <li>对第三方能力进行替换、适配和稳定性治理，降低外部依赖风险</li>
+            </ul>
+            <div class="project-visual" aria-hidden="true"></div>
+          </article>
+
+          <div class="project-stack">
+            <article class="project-card reveal">
+              <p class="micro-label">02 / High Throughput</p>
+              <h3>高并发数据处理链路</h3>
+              <p>针对高吞吐写入、任务调度、缓存和数据落库链路进行设计与优化，覆盖 3000+ records/sec 场景经验。</p>
+              <ul>
+                <li>拆分同步阻塞链路，使用队列、缓存与批处理控制压力</li>
+                <li>围绕数据一致性、失败重试和可观测日志建立护栏</li>
+              </ul>
+            </article>
+            <article class="project-card reveal">
+              <p class="micro-label">03 / Team Platform</p>
+              <h3>研发规范与 CI/CD 体系</h3>
+              <p>从分支模型、接口契约、代码分层、质量检查到发布流程，建立团队可执行的交付标准。</p>
+              <ul>
+                <li>用自动化构建和检查减少上线前人工风险</li>
+                <li>用 Wiki、SOP 和 Review 机制沉淀团队经验</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="education" class="section" data-index="06">
+        <div class="section-head reveal">
+          <div>
+            <p class="section-tag">Education</p>
+            <h2>教育经历保持简洁。</h2>
+          </div>
+          <p>简历页仅保留公开必要信息，把重点留给服务端能力、业务经验和团队交付成果。</p>
+        </div>
+        <div class="profile-grid">
+          <article class="section-card reveal">
+            <p class="micro-label">2017.03 - 2021.12 / 本科</p>
+            <h3>华南师范大学</h3>
+            <p>计算机科学与技术（应用技术）</p>
+          </article>
+          <article class="section-card reveal">
+            <p class="micro-label">2011.09 - 2014.06 / 专科</p>
+            <h3>广东工贸职业技术学院</h3>
+            <p>计算机软件</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="contact" class="section" data-index="07">
+        <div class="contact-panel reveal">
+          <div class="contact-grid">
+            <div>
+              <p class="section-tag">Contact</p>
+              <h2>如果你需要一个能把系统做稳的人。</h2>
+              <p>适合沟通高级后端、Golang/PHP 技术负责人、技术经理、业务中台负责人等岗位机会。公开页面已做信息收敛，更多项目细节可在合适场景下进一步交流。</p>
+              <div class="hero-actions">
+                <a class="action primary" href="mailto:173315279@qq.com">173315279@qq.com</a>
+                <a class="action" href="#top">回到顶部 ↑</a>
+              </div>
+            </div>
+            <aside class="contact-note">
+              <p class="micro-label">Public-safe Resume</p>
+              <p>本页保留用户已提供事实：10+ 年服务端、6+ 年管理、API 效率 +50%、100+ 供应商、月营收过千万、3000+ records/sec；未额外虚构指标。</p>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer site-shell">
+      <span>Built as a public-safe resume artifact in the Personal OS style.</span>
+      <span>Contact · <a href="mailto:173315279@qq.com">173315279@qq.com</a></span>
+    </footer>
+
+    <script>
+      const root = document.documentElement;
+      const canvas = document.querySelector('#depth-field');
+      const ctx = canvas.getContext('2d');
+      const pointer = {
+        targetX: innerWidth * 0.5,
+        targetY: innerHeight * 0.5,
+        x: innerWidth * 0.5,
+        y: innerHeight * 0.5,
+      };
+      const state = { w: 0, h: 0, ratio: 1, stars: [] };
+      const hoverState = new WeakMap();
+
+      function setPointerTarget(x, y) {
+        pointer.targetX = x;
+        pointer.targetY = y;
+      }
+
+      function syncCursor() {
+        pointer.x += (pointer.targetX - pointer.x) * 0.18;
+        pointer.y += (pointer.targetY - pointer.y) * 0.18;
+        root.style.setProperty('--cursor-x', pointer.x.toFixed(2) + 'px');
+        root.style.setProperty('--cursor-y', pointer.y.toFixed(2) + 'px');
+      }
+
+      function resize() {
+        state.ratio = Math.min(devicePixelRatio || 1, 2);
+        state.w = innerWidth;
+        state.h = innerHeight;
+        canvas.width = Math.floor(state.w * state.ratio);
+        canvas.height = Math.floor(state.h * state.ratio);
+        canvas.style.width = state.w + 'px';
+        canvas.style.height = state.h + 'px';
+        ctx.setTransform(state.ratio, 0, 0, state.ratio, 0, 0);
+        const count = Math.min(260, Math.max(110, Math.floor((state.w * state.h) / 7600)));
+        state.stars = Array.from({ length: count }, (_, index) => ({
+          x: Math.random() * state.w,
+          y: Math.random() * state.h,
+          z: Math.random() * 1 + 0.18,
+          vx: (Math.random() - 0.5) * 0.18,
+          vy: 0.16 + Math.random() * 0.42,
+          hue: index % 4,
+        }));
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, state.w, state.h);
+        syncCursor();
+        const cx = state.w * 0.5 + (pointer.x - state.w * 0.5) * 0.035;
+        const cy = state.h * 0.5 + (pointer.y - state.h * 0.5) * 0.035;
+
+        for (const star of state.stars) {
+          star.y += star.vy * star.z;
+          star.x += star.vx + (pointer.x - state.w * 0.5) * 0.00018 * star.z;
+          if (star.y > state.h + 20) star.y = -20;
+          if (star.x > state.w + 20) star.x = -20;
+          if (star.x < -20) star.x = state.w + 20;
+
+          const dx = star.x - cx;
+          const dy = star.y - cy;
+          const dist = Math.hypot(dx, dy);
+          const glow = Math.max(0, 1 - dist / 280);
+          const palette = [
+            '85, 247, 255',
+            '215, 255, 79',
+            '255, 107, 61',
+            '167, 125, 255',
+          ][star.hue];
+
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(${palette}, ${0.18 + star.z * 0.32 + glow * 0.26})`;
+          ctx.arc(star.x, star.y, 0.65 + star.z * 1.6 + glow * 2.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) entry.target.classList.add('is-visible');
+        }
+      }, { threshold: 0.16 });
+
+      document.querySelectorAll('.reveal').forEach((el, index) => {
+        el.style.transitionDelay = Math.min(index * 55, 360) + 'ms';
+        observer.observe(el);
+      });
+
+      document.querySelectorAll('.action, .profile-card, .section-card, .project-card, .timeline-item').forEach((el) => {
+        hoverState.set(el, { frame: 0, x: 0, y: 0 });
+
+        el.addEventListener('pointerenter', () => {
+          const stateForEl = hoverState.get(el);
+          stateForEl.rect = el.getBoundingClientRect();
+        });
+
+        el.addEventListener('pointermove', (event) => {
+          const stateForEl = hoverState.get(el);
+          stateForEl.x = event.clientX;
+          stateForEl.y = event.clientY;
+          if (stateForEl.frame) return;
+
+          stateForEl.frame = requestAnimationFrame(() => {
+            stateForEl.frame = 0;
+            const rect = stateForEl.rect || el.getBoundingClientRect();
+            el.style.setProperty('--mx', (stateForEl.x - rect.left).toFixed(1) + 'px');
+            el.style.setProperty('--my', (stateForEl.y - rect.top).toFixed(1) + 'px');
+          });
+        }, { passive: true });
+      });
+
+      addEventListener('pointermove', (event) => setPointerTarget(event.clientX, event.clientY), { passive: true });
+      addEventListener('resize', resize);
+      syncCursor();
+      resize();
+      draw();
+    </script>
+  </body>
+</html>

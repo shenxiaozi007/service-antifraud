@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HXC | 个人求职介绍</title>
+    <meta
+      name="description"
+      content="HXC 的个人求职介绍：运维稳定性、工程基础设施、业务系统交付、团队规范与 智能化工具辅助研发。"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <canvas id="field" aria-hidden="true"></canvas>
+    <div class="noise" aria-hidden="true"></div>
+    <div class="cursor-glow" aria-hidden="true"></div>
+    <div class="scroll-progress" aria-hidden="true"><span></span></div>
+
+    <header class="site-header">
+      <a class="brand spotlight" href="#top" aria-label="回到首页">
+        <span class="brand-mark">HX</span>
+        <span class="brand-copy">
+          <strong>HXC</strong>
+          <small>个人求职介绍</small>
+        </span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="主导航">
+        <a href="#signal">求职定位</a>
+        <a href="#profile">个人情况</a>
+        <a href="#capabilities">能力结构</a>
+        <a href="#notes">知识文章</a>
+        <a href="#contact">联系我</a>
+      </nav>
+
+      <button class="menu-button spotlight" type="button" aria-expanded="false" aria-controls="mobile-menu">
+        <span>菜单</span>
+        <i aria-hidden="true"></i>
+      </button>
+    </header>
+
+    <nav id="mobile-menu" class="mobile-menu" aria-label="移动端导航">
+      <a href="#signal">求职定位</a>
+      <a href="#profile">个人情况</a>
+      <a href="#capabilities">能力结构</a>
+      <a href="#notes">知识文章</a>
+      <a href="#contact">联系我</a>
+    </nav>
+
+    <main id="top">
+      <section class="hero section-panel" data-section="00">
+        <div class="hero-copy">
+          <p class="eyebrow">个人介绍 / 求职作品集 / 工程实践记录</p>
+          <h1><span>你好，我是 HXC。</span><span>关注运维稳定性</span><span>与工程化交付。</span></h1>
+          <p class="hero-lead">
+            我适合偏运维、运维开发、研发效能、业务系统交付相关岗位。过往知识沉淀集中在系统部署、自动化发布、监控排障、权限边界、团队规范和 智能化工具辅助研发。相比只完成单点任务，我更擅长把流程整理成可复制、可追踪、可长期运行的体系。
+          </p>
+          <div class="hero-actions">
+            <a class="action primary-action spotlight" href="#profile">查看个人情况</a>
+            <a class="action ghost-action spotlight" href="#capabilities">查看能力结构</a>
+          </div>
+        </div>
+
+        <aside class="mission-console" aria-label="个人能力概览">
+          <div class="console-header">
+            <span>求职画像</span>
+            <b>2026</b>
+          </div>
+          <div class="orbit" aria-hidden="true">
+            <span style="--i: 0">客户系统</span>
+            <span style="--i: 1">权限</span>
+            <span style="--i: 2">持续交付</span>
+            <span style="--i: 3">智能工具</span>
+            <span style="--i: 4">文档</span>
+            <span style="--i: 5">运维</span>
+          </div>
+          <div class="console-core">
+            <strong>HXC</strong>
+            <small>运维稳定性与工程交付实践者</small>
+          </div>
+          <dl class="console-stats">
+            <div><dt>方向</dt><dd>运维 / 运维开发 / 研发效能</dd></div>
+            <div><dt>关注</dt><dd>部署、监控、排障、自动化</dd></div>
+            <div><dt>习惯</dt><dd>文档化、流程化、可复用</dd></div>
+          </dl>
+        </aside>
+      </section>
+
+      <section id="signal" class="signal section-panel" data-section="01">
+        <div class="section-copy">
+          <p class="section-kicker">求职定位</p>
+          <h2>我希望加入重视稳定性、规范和持续交付的团队。</h2>
+          <p>
+            我不是只关注“功能能跑”，更关注系统上线后的运行质量：部署是否可重复，问题是否能定位，权限是否有边界，流程是否可追溯，经验是否能沉淀给下一次使用。这个页面来自个人知识库的脱敏整理，可作为招聘沟通时的能力索引。
+          </p>
+        </div>
+        <div class="signal-grid">
+          <article class="metric-card spotlight">
+            <span>01</span>
+            <strong>知识整理能力</strong>
+            <p>习惯用 Obsidian 和 智能化工具沉淀部署、排障、规范和业务理解，把经验转成可复用资料。</p>
+          </article>
+          <article class="metric-card spotlight">
+            <span>02</span>
+            <strong>交付流程意识</strong>
+            <p>关注分支流程、质量门禁、发布节奏和文档规范，让协作不只依赖口头沟通。</p>
+          </article>
+          <article class="metric-card spotlight">
+            <span>03</span>
+            <strong>运维稳定性意识</strong>
+            <p>围绕服务、发布、监控、备份、权限和故障恢复，把运行体系拆成清晰边界。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="profile" class="profile section-panel" data-section="02">
+        <p class="section-kicker">个人情况</p>
+        <h2>适合的岗位方向：运维、运维开发、研发效能、工程交付支持。</h2>
+        <div class="profile-grid">
+          <article class="profile-card spotlight">
+            <span>我能承担</span>
+            <p>系统部署、自动化发布、环境维护、日志排查、基础监控、权限梳理、文档规范、内部流程优化，以及业务系统交付中的跨角色协作。</p>
+          </article>
+          <article class="profile-card spotlight">
+            <span>我的优势</span>
+            <p>做事偏系统化，习惯先梳理目标和边界，再沉淀 标准流程、检查清单和知识库。遇到重复问题，会优先考虑脚本化、自动化或文档化。</p>
+          </article>
+          <article class="profile-card spotlight">
+            <span>我重视</span>
+            <p>稳定性、可追溯、可交接、可复盘。希望所在团队既关注业务速度，也愿意建设长期可维护的工程基础设施。</p>
+          </article>
+          <article class="profile-card spotlight">
+            <span>近期关注</span>
+            <p>智能化工具辅助研发、Claude Code、Obsidian 知识库、自动化部署、质量门禁、团队规范和小团队工程基础设施建设。</p>
+          </article>
+        </div>
+      </section>
+      <section id="capabilities" class="capabilities section-panel" data-section="03">
+        <p class="section-kicker">能力结构</p>
+        <h2>我能提供的不只是执行力，也包括把问题整理清楚、把流程跑顺、把经验沉淀下来的能力。</h2>
+        <div class="capability-grid">
+          <article class="capability-card spotlight is-featured">
+            <span class="card-index">01</span>
+            <h3>业务系统理解与权限梳理</h3>
+            <p>能理解客户、订单、权限、报表等后台系统场景，协助把业务流程整理成可维护、可交接的模块边界。</p>
+            <ul>
+              <li>业务流程梳理与对象拆分</li>
+              <li>菜单、动作、数据范围的权限边界</li>
+              <li>报表指标、操作流程与权限边界梳理</li>
+            </ul>
+          </article>
+          <article class="capability-card spotlight">
+            <span class="card-index">02</span>
+            <h3>运维自动化与稳定性</h3>
+            <p>围绕环境、发布、监控、备份和排障，把系统运行过程整理成可重复、可追踪、可恢复的运维路径。</p>
+            <ul>
+              <li>服务部署、环境初始化与发布流程</li>
+              <li>日志、监控、告警与故障定位</li>
+              <li>备份恢复、权限边界与安全基线</li>
+            </ul>
+          </article>
+          <article class="capability-card spotlight">
+            <span class="card-index">03</span>
+            <h3>工程基础设施</h3>
+            <p>把代码托管、持续集成、文档协作、远程接入和部署流程组合成稳定的交付底座。</p>
+            <ul>
+              <li>代码托管 / 持续集成 / 自动发布</li>
+              <li>容器化、本地环境与自动化部署</li>
+              <li>远程接入、权限和排障协作</li>
+            </ul>
+          </article>
+          <article class="capability-card spotlight">
+            <span class="card-index">04</span>
+            <h3>团队规范与质量门禁</h3>
+            <p>把“应该怎么做”变成分支策略、提交规范、检查清单、代码检查、类型检查、测试和构建。</p>
+            <ul>
+              <li>前后端协作边界</li>
+              <li>分支流程与发布节奏</li>
+              <li>合并前检查与可追溯交付</li>
+            </ul>
+          </article>
+          <article class="capability-card spotlight">
+            <span class="card-index">05</span>
+            <h3>技术团队能力模型</h3>
+            <p>从岗位画像、面试问题到评分标准，关注工程师是否能在真实工程环境中持续交付。</p>
+            <ul>
+              <li>工程规范意识</li>
+              <li>故障排查与文档能力</li>
+              <li>智能化工具和自动化意识</li>
+            </ul>
+          </article>
+          <article class="capability-card spotlight">
+            <span class="card-index">06</span>
+            <h3>AI 辅助研发工作流</h3>
+            <p>把 智能编码工具、知识库、脚手架和标准流程 串起来，让 智能化工具不只是问答工具，而是交付流程的一部分。</p>
+            <ul>
+              <li>知识库归档与结构化</li>
+              <li>规范驱动的代码生成</li>
+              <li>重复任务自动化</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="method" class="method section-panel" data-section="04">
+        <div class="section-copy">
+          <p class="section-kicker">工作方式</p>
+          <h2>我的工作方式：先把边界讲清楚，再把流程做稳定。</h2>
+          <p>
+            我习惯先梳理目标、风险、依赖和验收标准，再推进实现。遇到重复问题，会优先沉淀文档、脚本、检查清单或自动化流程，减少团队后续的沟通和排障成本。
+          </p>
+        </div>
+        <div class="method-map" aria-label="工作方法路径">
+          <div class="method-node spotlight"><span>01</span><strong>理解目标</strong><small>先确认业务目的和交付边界</small></div>
+          <div class="method-node spotlight"><span>02</span><strong>识别风险</strong><small>提前看环境、权限、数据和依赖</small></div>
+          <div class="method-node spotlight"><span>03</span><strong>整理流程</strong><small>把操作步骤变成可复用清单</small></div>
+          <div class="method-node spotlight"><span>04</span><strong>自动检查</strong><small>用脚本和 CI 减少低级错误</small></div>
+          <div class="method-node spotlight"><span>05</span><strong>记录经验</strong><small>把排障和决策沉淀到知识库</small></div>
+          <div class="method-node spotlight"><span>06</span><strong>持续优化</strong><small>让下一次交付更快、更稳</small></div>
+        </div>
+      </section>
+
+      <section id="notes" class="notes section-panel" data-section="05">
+        <p class="section-kicker">知识文章</p>
+        <h2>这些文章来自我的个人知识库整理，也能体现我的关注方向和工作方法。</h2>
+        <div class="note-list">
+          <a class="note-link spotlight" href="./posts/obsidian-knowledge-system.html">
+            <span>01</span>
+            <strong>从 Obsidian 到个人知识系统：如何把零散资料变成公开表达</strong>
+            <em>知识系统</em>
+          </a>
+          <a class="note-link spotlight" href="./posts/backend-layering.html">
+            <span>02</span>
+            <strong>运维自动化与稳定性：从部署、监控到故障恢复的运行体系</strong>
+            <em>运维稳定性</em>
+          </a>
+          <a class="note-link spotlight" href="./posts/quality-gates.html">
+            <span>03</span>
+            <strong>小团队质量门禁：代码检查、类型检查、测试和构建如何进入日常</strong>
+            <em>交付体系</em>
+          </a>
+          <a class="note-link spotlight" href="./posts/crm-permission-tree.html">
+            <span>04</span>
+            <strong>客户系统 权限树：菜单、动作和数据范围为什么要拆开设计</strong>
+            <em>权限设计</em>
+          </a>
+          <a class="note-link spotlight" href="./posts/devops-delivery-os.html">
+            <span>05</span>
+            <strong>工程基础设施不是工具堆叠，而是团队交付的操作系统</strong>
+            <em>工程基础设施</em>
+          </a>
+          <a class="note-link spotlight" href="./posts/ai-default-workflow.html">
+            <span>06</span>
+            <strong>智能化工具如何从“偶尔使用”变成团队默认效率</strong>
+            <em>智能工具 工作流</em>
+          </a>
+        </div>
+      </section>
+
+      <section id="contact" class="contact section-panel" data-section="06">
+        <div>
+          <p class="section-kicker">联系我</p>
+          <h2>如果你在招聘运维、运维开发、研发效能或工程交付方向的人，可以联系我。</h2>
+        </div>
+        <div class="contact-panel spotlight">
+          <p>
+            我希望加入一个重视长期稳定性、工程规范和团队协作效率的团队。可以承担系统部署、运维自动化、监控排障、工程基础设施维护、内部工具与流程沉淀等工作，也愿意在业务系统交付中承担跨角色协作。
+          </p>
+          <div class="contact-actions">
+            <a class="action primary-action spotlight" href="mailto:173315279@qq.com">173315279@qq.com</a>
+            <a class="action ghost-action spotlight" href="#top">回到顶部</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>内容来自个人知识库的脱敏整理，用于招聘沟通与个人介绍。</span>
+      <span>HXC · 个人求职介绍 · 静态页面</span>
+    </footer>
+
+    <script src="./script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>小团队工程基础设施 | HXC</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <canvas id="field" aria-hidden="true"></canvas>
+    <div class="cursor-glow" aria-hidden="true"></div>
+    <main class="post-shell">
+      <a class="post-back" href="../index.html#notes">← Back to notes</a>
+      <article>
+        <p class="eyebrow">DevOps</p>
+        <h1>小团队工程基础设施</h1>
+        <p class="post-meta">整理时间：2026-05-16 / 来源：工程基础设施平台</p>
+        <p>
+          小团队不一定需要复杂平台，但需要一套稳定底座：代码托管、自动构建、知识沉淀、远程接入和常见故障排查路径。
+        </p>
+        <h2>基础组合</h2>
+        <ul>
+          <li>GitLab 管代码与合并流程。</li>
+          <li>Jenkins 承接构建、测试和发布。</li>
+          <li>Wiki / Confluence 沉淀规范、部署和业务口径。</li>
+          <li>OpenVPN 与 Split Tunnel 保障远程内网访问。</li>
+        </ul>
+      </article>
+    </main>
+    <script src="../script.js"></script>
+  </body>
+</html>

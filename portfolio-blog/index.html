@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HXC | Engineering Narrative Lab</title>
+    <meta
+      name="description"
+      content="HXC 的个人介绍博客：工程交付、团队规范、CRM 业务系统、DevOps 基础设施与 AI 工作流。"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <canvas id="field" aria-hidden="true"></canvas>
+    <div class="cursor-glow" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="回到首页">
+        <span class="brand-mark">HX</span>
+        <span>Engineering Narrative Lab</span>
+      </a>
+      <nav aria-label="主导航">
+        <a href="#signal">信号</a>
+        <a href="#work">项目</a>
+        <a href="#system">系统</a>
+        <a href="#notes">博客</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero section-panel" data-section="00">
+        <div class="hero-copy">
+          <p class="eyebrow">Personal Blog / Technical Portfolio / Knowledge OS</p>
+          <h1>把混乱的业务、团队和系统，整理成能持续交付的工程秩序。</h1>
+          <p class="hero-lead">
+            我关注从 0 到 1 的业务系统搭建，也关注系统进入团队协作后，如何被规范、流程、CI/CD、知识库和 AI 工具继续放大。
+          </p>
+          <div class="hero-actions">
+            <a class="primary-action" href="#work">进入作品星图</a>
+            <a class="ghost-action" href="#notes">查看知识库切片</a>
+          </div>
+        </div>
+
+        <aside class="orbital-console" aria-label="个人能力概览">
+          <div class="console-ring">
+            <span style="--i: 0">CRM</span>
+            <span style="--i: 1">CI</span>
+            <span style="--i: 2">RBAC</span>
+            <span style="--i: 3">AI</span>
+            <span style="--i: 4">Docs</span>
+            <span style="--i: 5">Ops</span>
+          </div>
+          <div class="console-core">
+            <strong>HXC</strong>
+            <small>builder of delivery systems</small>
+          </div>
+        </aside>
+      </section>
+
+      <section id="signal" class="signal-grid section-panel" data-section="01">
+        <div class="section-kicker">Current Signal</div>
+        <h2>我正在把个人知识库变成一个可公开表达的技术人格。</h2>
+        <p>
+          知识库目前已经沉淀出四条主线：团队研发规范、工程基础设施、云实 CRM 业务系统、技术招聘画像。它们组合起来，不只是笔记，更像一套从业务建模到团队交付的工作方法。
+        </p>
+        <div class="metrics">
+          <article>
+            <strong>4</strong>
+            <span>知识主线</span>
+          </article>
+          <article>
+            <strong>3</strong>
+            <span>权限层级：菜单 / 动作 / 数据</span>
+          </article>
+          <article>
+            <strong>CI</strong>
+            <span>lint + type-check + test + build</span>
+          </article>
+        </div>
+      </section>
+
+      <section id="work" class="work section-panel" data-section="02">
+        <div class="section-kicker">Selected Systems</div>
+        <h2>作品不是孤立页面，而是可运行、可扩张、可交接的系统。</h2>
+        <div class="work-grid">
+          <article class="work-card is-featured">
+            <span class="work-index">01</span>
+            <h3>云实 CRM 业务系统</h3>
+            <p>围绕客户、销售、订单、分配、续保和报表，设计客户经营后台与权限模型。</p>
+            <ul>
+              <li>客户链路：线索来源、分配、跟进、成交、续保</li>
+              <li>权限模型：菜单、按钮、数据范围三层授权</li>
+              <li>落地路径：一期核心对象，二期经营指标与知识库</li>
+            </ul>
+          </article>
+          <article class="work-card">
+            <span class="work-index">02</span>
+            <h3>团队研发规范体系</h3>
+            <p>用前端、后端、Git 流程和质量门禁统一协作语言，减少交付过程中的歧义。</p>
+            <ul>
+              <li>master / beta / dev / fix 分支环境映射</li>
+              <li>Controller / Business / DAO 后端职责分层</li>
+              <li>PR 前置检查与可追溯提交规范</li>
+            </ul>
+          </article>
+          <article class="work-card">
+            <span class="work-index">03</span>
+            <h3>工程基础设施平台</h3>
+            <p>把 GitLab、Jenkins、Wiki/Confluence、OpenVPN 和本地工具链组合成团队交付底座。</p>
+            <ul>
+              <li>CentOS 9 多服务部署与端口规划</li>
+              <li>Split Tunnel 内网分流与远程接入</li>
+              <li>文档沉淀、构建发布和排障协作</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="system" class="system-map section-panel" data-section="03">
+        <div class="section-kicker">Operating Model</div>
+        <h2>我的工作方式：先建立边界，再让系统自己推进。</h2>
+        <div class="map">
+          <div class="node node-a">业务建模</div>
+          <div class="node node-b">架构分层</div>
+          <div class="node node-c">团队规范</div>
+          <div class="node node-d">CI/CD</div>
+          <div class="node node-e">知识沉淀</div>
+          <div class="node node-f">AI 增强</div>
+        </div>
+        <div class="principles">
+          <p>业务对象要能串起真实流程，代码边界要能保护长期维护，团队规范要能进入日常动作。</p>
+          <p>工具不只是提效，它们应该把经验固化成下一次更快、更稳的默认路径。</p>
+        </div>
+      </section>
+
+      <section id="notes" class="notes section-panel" data-section="04">
+        <div class="section-kicker">Blog Directions</div>
+        <h2>博客可以从这些主题开写。</h2>
+        <div class="note-list">
+          <a href="./posts/obsidian-to-blog.html">
+            <span>01</span>
+            <strong>从 Obsidian 到个人技术博客：如何把零散笔记变成公开表达</strong>
+            <em>Knowledge OS</em>
+          </a>
+          <a href="./posts/crm-permission-tree.html">
+            <span>02</span>
+            <strong>CRM 权限树设计：菜单、按钮与数据范围为什么要分开</strong>
+            <em>RBAC / CRM</em>
+          </a>
+          <a href="./posts/delivery-system.html">
+            <span>03</span>
+            <strong>研发规范不是文档，而是团队交付系统的接口</strong>
+            <em>Team System</em>
+          </a>
+          <a href="./posts/small-team-infra.html">
+            <span>04</span>
+            <strong>把 GitLab、Jenkins、Wiki 和 VPN 组织成一套小团队基础设施</strong>
+            <em>DevOps</em>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Built from a local Obsidian knowledge base. Designed for a darker, kinetic, system-first personal blog.</p>
+      <a href="#top">Back to top</a>
+    </footer>
+
+    <script src="./script.js"></script>
+  </body>
+</html>

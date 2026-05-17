@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>从 Obsidian 到个人知识系统 | HXC</title>
+    <meta name="description" content="把 Obsidian 私有笔记整理成可复用、可公开表达的个人知识系统。" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="article-body">
+    <canvas id="field" aria-hidden="true"></canvas>
+    <div class="noise" aria-hidden="true"></div>
+    <div class="cursor-glow" aria-hidden="true"></div>
+    <div class="scroll-progress" aria-hidden="true"><span></span></div>
+
+    <header class="site-header">
+      <a class="brand spotlight" href="../index.html#top" aria-label="回到首页">
+        <span class="brand-mark">HX</span>
+        <span class="brand-copy"><strong>HXC</strong><small>个人求职介绍</small></span>
+      </a>
+      <nav class="desktop-nav" aria-label="文章导航">
+        <a href="../index.html#notes">知识文章</a>
+        <a href="../index.html#capabilities">能力结构</a>
+        <a href="mailto:173315279@qq.com">联系我</a>
+      </nav>
+      <button class="menu-button spotlight" type="button" aria-expanded="false" aria-controls="mobile-menu"><span>菜单</span><i aria-hidden="true"></i></button>
+    </header>
+
+    <nav id="mobile-menu" class="mobile-menu" aria-label="移动端导航">
+      <a href="../index.html#notes">知识文章</a>
+      <a href="../index.html#capabilities">能力结构</a>
+      <a href="../index.html#contact">联系我</a>
+    </nav>
+
+    <main class="article-shell">
+      <article class="article-card spotlight">
+        <a class="back-link" href="../index.html#notes">← 返回知识文章</a>
+        <p class="section-kicker">知识系统</p>
+        <h1>从 Obsidian 到个人知识系统：如何把零散资料变成公开表达</h1>
+        <p class="article-lead">我的知识库不是收藏夹，而是一套把工作现场、技术判断和团队经验持续压缩成知识资产的系统。</p>
+
+        <section>
+          <h2>问题不是资料太少，而是资料无法复用</h2>
+          <p>工作里会不断产生会议记录、部署步骤、规范草案、业务说明、排障过程和灵感片段。如果这些内容只停留在原始笔记里，它们很快会变成“当时有用、以后找不到”的沉没成本。</p>
+          <p>我更倾向于把知识库分成两层：原始资料层保存现场语境，结构化知识层沉淀概念、实体、比较和综述。前者保证信息不丢，后者保证下次能用。</p>
+        </section>
+
+        <section>
+          <h2>我的整理路径</h2>
+          <ol>
+            <li><strong>先归档：</strong>把原始信息按来源和主题放好，不急着美化。</li>
+            <li><strong>再抽象：</strong>从资料里提取可复用的概念、流程、检查清单和判断标准。</li>
+            <li><strong>再连接：</strong>把业务系统、工程规范、部署经验和 AI 工作流互相链接。</li>
+            <li><strong>最后公开化：</strong>移除敏感细节，把内部经验改写成通用方法论。</li>
+          </ol>
+        </section>
+
+        <section>
+          <h2>公开表达的边界</h2>
+          <p>个人博客不应该复制私有知识库。真实公司、项目名称、内网结构、账号密钥、招聘细节、业务规则都应该被移除。保留下来的，是对问题的建模方式、工程选择背后的理由，以及可复用的协作方法。</p>
+        </section>
+
+        <aside class="article-callout">
+          <strong>一句话总结</strong>
+          <p>知识库的价值不在于“记了多少”，而在于它能不能帮助下一次决策更快、更稳、更可解释。</p>
+        </aside>
+      </article>
+    </main>
+
+    <footer class="site-footer"><span>HXC · 知识系统</span><span><a href="mailto:173315279@qq.com">173315279@qq.com</a></span></footer>
+    <script src="../script.js"></script>
+  </body>
+</html>
