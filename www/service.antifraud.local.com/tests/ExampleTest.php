@@ -12,12 +12,14 @@ class ExampleTest extends TestCase
      *
      * @return void
      */
-    public function test_that_base_endpoint_returns_a_successful_response()
+    public function test_that_base_endpoint_returns_homepage()
     {
         $this->get('/');
 
-        $this->assertEquals(
-            $this->app->version(), $this->response->getContent()
+        $this->assertResponseOk();
+        $this->assertStringContainsString(
+            '<title>HXC | 工程系统与个人品牌</title>',
+            file_get_contents(base_path('public/home.html'))
         );
     }
 

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>前端开发规范：命名、目录、编码与质量门禁 | HXC</title>
+    <meta name="description" content="公开化整理前端团队在项目命名、目录结构、HTML/CSS/TypeScript 编码、工程化检查和 PR 自检上的协作规范。" />
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href="https://my.hxcbox.cn/posts/frontend-standards-guide.html" />
+    <meta property="og:title" content="前端开发规范：命名、目录、编码与质量门禁 | HXC" />
+    <meta property="og:description" content="公开化整理前端团队在项目命名、目录结构、HTML/CSS/TypeScript 编码、工程化检查和 PR 自检上的协作规范。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://my.hxcbox.cn/posts/frontend-standards-guide.html" />
+    <link rel="stylesheet" href="../assets/article.css" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","name":"前端开发规范：命名、目录、编码与质量门禁 | HXC","description":"公开化整理前端团队在项目命名、目录结构、HTML/CSS/TypeScript 编码、工程化检查和 PR 自检上的协作规范。","url":"https://my.hxcbox.cn/posts/frontend-standards-guide.html"}</script>
+
+  </head>
+  <body><canvas id="depth-field" aria-hidden="true"></canvas><div class="cursor-orb" aria-hidden="true"></div><header class="nav" aria-label="文章导航"><a class="brand" href="../index.html"><span class="brand-mark">HX</span><span>返回个人主页</span></a><nav class="nav-links"><a href="../index.html#archive">全部文章</a><a href="mailto:173315279@qq.com">173315279@qq.com</a></nav></header><main class="site-shell"><section class="post-hero"><div class="reveal"><p class="section-tag">Frontend Standard / 09</p><h1>前端规范<span>质量门禁</span></h1><p class="lead">前端规范的目标不是限制写法，而是让项目命名、目录组织、编码风格、提交流程和质量检查都变成团队可以复用的协作接口。</p></div><aside class="signal-card reveal"><p class="micro-label">核心信号</p><strong>FE</strong><p>把命名、目录、TypeScript、工程化检查和 PR 清单固化下来，减少接手成本。</p><div class="chips"><span class="chip">kebab-case</span><span class="chip">TypeScript</span><span class="chip">ESLint</span><span class="chip">PR Check</span></div></aside></section><section class="post-grid"><article class="content-card reveal"><p class="section-tag">公开摘要</p><p>本文整理前端团队在项目命名、目录结构、HTML/CSS/JavaScript（TypeScript）编码、提交流程等方面的统一实践。关联后端规范与 Git 使用规范时，页面中以纯文本呈现，不保留 Obsidian 双链格式。</p><h2 id="goal">规范目的与能愿动词</h2><ul><li><strong>高效协作：</strong>降低沟通与接手成本。</li><li><strong>风格统一：</strong>统一代码风格和工程组织方式。</li><li><strong>质量可控：</strong>通过自动化检查减少低级错误。</li><li><strong>便于维护：</strong>提升可读性、可扩展性和可追溯性。</li></ul><p>文档中的“必须”表示无条件遵守，“绝不”表示严令禁止，“应该”表示强烈建议，“不应该”表示强烈不建议。</p><h2 id="naming">项目与文件命名</h2><ul><li>项目名必须全小写，多单词必须使用中划线分隔，例如 <code>clinic-admin-web</code>、<code>drug-inventory-h5</code>。</li><li>项目名绝不使用中文、空格、下划线或驼峰，例如 <code>ClinicAdminWeb</code>、<code>clinic_admin_web</code> 都不建议。</li><li>普通目录和文件应该使用小写中划线风格，例如 <code>order-list.ts</code>。</li><li>组件文件在框架允许时可以使用 <code>PascalCase</code>，但同一项目内必须统一。</li></ul><h2 id="structure">目录结构建议</h2><pre><code>project-name/
+├── src/
+│   ├── assets/      # 静态资源
+│   ├── components/  # 通用组件
+│   ├── pages/       # 页面级模块
+│   ├── layouts/     # 布局组件
+│   ├── router/      # 路由配置
+│   ├── store/       # 状态管理
+│   ├── services/    # API 请求层
+│   ├── hooks/       # 复用逻辑
+│   ├── utils/       # 工具函数
+│   ├── styles/      # 全局样式/变量
+│   ├── constants/   # 常量定义
+│   └── types/       # 类型定义
+├── public/
+├── tests/
+└── docs/</code></pre><h2 id="code-style">HTML、CSS 与 TypeScript</h2><h3>HTML</h3><ul><li>标签与属性名必须小写，属性值必须使用双引号。</li><li>结构类标签应该使用语义化元素，例如 <code>header</code>、<code>main</code>、<code>section</code>、<code>footer</code>。</li><li><code>img</code> 必须提供 <code>alt</code>，表单控件应该配套 <code>label</code>。</li><li>缩进必须统一，建议 2 空格。</li></ul><h3>CSS / SCSS</h3><ul><li>class 名必须小写中划线，复杂样式应该使用 BEM 命名法。</li><li>样式不应该依赖 <code>id</code> 选择器，绝不滥用 <code>!important</code>。</li><li>颜色、间距、字号应该抽为变量或 token，嵌套层级不应该超过 3 层。</li></ul><h3>JavaScript / TypeScript</h3><ul><li>变量和函数使用 <code>camelCase</code>，类、类型、接口、组件使用 <code>PascalCase</code>，常量使用 <code>UPPER_SNAKE_CASE</code>。</li><li>布尔变量应该使用 <code>is</code>、<code>has</code>、<code>can</code> 前缀。</li><li>一个函数应该只做一件事，优先使用 <code>const</code>，必要时再使用 <code>let</code>，绝不使用 <code>var</code>。</li><li>异步流程必须处理错误，TypeScript 项目不应该随意使用 <code>any</code>。</li></ul><div class="pull">前端规范的关键，是把“个人习惯”翻译成“团队可以检查的接口”。</div><h2 id="engineering">组件、状态与质量门禁</h2><ul><li>组件职责应该单一：页面组装与业务逻辑拆分。</li><li>可复用逻辑应该抽离到 <code>hooks/</code> 或 <code>composables/</code>。</li><li>API 调用必须收敛在 <code>services/</code>，页面层不直接拼接请求。</li><li>全局状态应该只存共享状态，不存纯展示状态。</li><li>项目必须配置并启用 <code>ESLint + Prettier</code>。</li><li>合并前必须通过 <code>lint</code>、<code>type-check</code>、<code>test</code>、<code>build</code>。</li><li>应该启用 <code>husky + lint-staged</code>，在提交前自动检查；CI 必须在 PR 阶段执行质量校验。</li></ul><h2 id="git-pr">Git 与 PR 自检</h2><p>分支规范应与团队 Git 流程对齐，例如 <code>dev/{日期}/{需求}</code> 与 <code>fix/{日期}/{需求}</code>。提交信息建议使用语义化前缀：<code>feat:</code>、<code>fix:</code>、<code>refactor:</code>、<code>docs:</code>、<code>style:</code>、<code>test:</code>、<code>chore:</code>。</p><ul><li>命名是否符合项目、目录、文件、变量规范。</li><li>是否通过 lint、type-check、test、build。</li><li>是否存在内联样式、<code>!important</code> 滥用或超深嵌套。</li><li>API 调用是否集中在 <code>services/</code>。</li><li>分支命名与提交信息是否符合规范。</li></ul></article><aside><div class="toc reveal"><p class="micro-label">阅读目录</p><a href="#goal">规范目的</a><a href="#naming">命名约定</a><a href="#structure">目录结构</a><a href="#code-style">编码规范</a><a href="#engineering">质量门禁</a><a href="#git-pr">Git / PR</a></div><div class="next-card reveal" style="margin-top: var(--space-3)"><p class="micro-label">下一篇</p><a class="action" href="technical-hiring-requirements.html">继续读招聘需求 →</a><a href="../index.html#archive">← 回到文章列表</a></div></aside></section></main><footer class="footer site-shell"><span>基于公开化知识主题整理。</span><span>联系 · <a href="mailto:173315279@qq.com">173315279@qq.com</a></span></footer><script src="../assets/site.js" defer></script></body>
+</html>

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Git 使用规范：分支、提测、上线与 Tag 流程 | HXC</title>
+    <meta name="description" content="公开化整理 Git 分支与环境映射、需求开发、提测、上线、打 Tag 和回写环境的标准流程。" />
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href="https://my.hxcbox.cn/posts/git-workflow-standard.html" />
+    <meta property="og:title" content="Git 使用规范：分支、提测、上线与 Tag 流程 | HXC" />
+    <meta property="og:description" content="公开化整理 Git 分支与环境映射、需求开发、提测、上线、打 Tag 和回写环境的标准流程。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://my.hxcbox.cn/posts/git-workflow-standard.html" />
+    <link rel="stylesheet" href="../assets/article.css" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","name":"Git 使用规范：分支、提测、上线与 Tag 流程 | HXC","description":"公开化整理 Git 分支与环境映射、需求开发、提测、上线、打 Tag 和回写环境的标准流程。","url":"https://my.hxcbox.cn/posts/git-workflow-standard.html"}</script>
+
+  </head>
+  <body><canvas id="depth-field" aria-hidden="true"></canvas><div class="cursor-orb" aria-hidden="true"></div><header class="nav" aria-label="文章导航"><a class="brand" href="../index.html"><span class="brand-mark">HX</span><span>返回个人主页</span></a><nav class="nav-links"><a href="../index.html#archive">全部文章</a><a href="mailto:173315279@qq.com">173315279@qq.com</a></nav></header><main class="site-shell"><section class="post-hero"><div class="reveal"><p class="section-tag">Git Workflow / 11</p><h1>Git 流程<span>环境映射</span></h1><p class="lead">Git 规范的重点，是让分支、环境、提测、上线和 Tag 形成一条可追溯的发布路径。</p></div><aside class="signal-card reveal"><p class="micro-label">核心信号</p><strong>GIT</strong><p>不要让 beta 反向污染开发分支；需求从 master 出发，也回到 master 上线。</p><div class="chips"><span class="chip">master</span><span class="chip">beta</span><span class="chip">dev/*</span><span class="chip">tag</span></div></aside></section><section class="post-grid"><article class="content-card reveal"><p class="section-tag">公开摘要</p><h2 id="mapping">分支与环境映射</h2><ul><li><code>master</code>：线上生产环境。</li><li><code>beta</code>：线上测试环境。</li><li><code>dev/{日期}/{需求}</code>：需求开发分支，全部小写。</li><li><code>fix/{日期}/{需求}</code>：缺陷修复分支，全部小写。</li></ul><p>开发分支必须从 <code>master</code> 创建；前后端必须使用统一分支名；当 <code>master</code> 有更新时，开发分支必须及时合并最新 <code>master</code>。</p><h2 id="flow">标准流程</h2><p>完整链路是：创建分支 → 开发自测 → 提测合并 <code>beta</code> → 上线合并 <code>master</code> → 打 Tag。</p><ol><li>创建需求分支：切到 <code>master</code>，拉取最新代码，再创建 <code>dev/20260413/feature-name</code>。</li><li>多人协作时，如果 <code>master</code> 有更新，先更新主干，再合并到当前开发分支。</li><li>开发完成后提交并推送，例如使用 <code>feat: 完成 feature-name 需求</code> 这类语义化提交说明。</li><li>提测时合并需求分支到 <code>beta</code> 并推送。</li><li>测试通过后合并需求分支到 <code>master</code> 并推送。</li><li>上线后按版本创建并推送 Tag，例如 <code>v2.6</code>。</li></ol><div class="pull">不要出现 test → dev、dev → pre 这类跨环境反向合并；并行项目下会污染环境。</div><h2 id="tag">Tag 与回写</h2><p>上线后如果主干发生变化，按需将 <code>master</code> 回写到 <code>beta</code>，并提醒仍在开发中的 <code>dev/*</code> 或 <code>fix/*</code> 分支同步最新主干。</p><h2 id="rules">补充约束</h2><ul><li>提测前至少完成本地自测。</li><li>一个需求对应一个 <code>dev/*</code> 分支，一个修复对应一个 <code>fix/*</code> 分支。</li><li>不要在 <code>master</code>、<code>beta</code> 上直接开发。</li><li>分支命名和提交说明尽量语义化，便于追溯与审计。</li></ul></article><aside><div class="toc reveal"><p class="micro-label">阅读目录</p><a href="#mapping">环境映射</a><a href="#flow">标准流程</a><a href="#tag">Tag 回写</a><a href="#rules">补充约束</a></div><div class="next-card reveal"><p class="micro-label">下一篇</p><a class="action" href="backend-development-standard.html">继续读后端规范 →</a><a href="technical-hiring-requirements.html">← 上一篇</a></div></aside></section></main><footer class="footer site-shell"><span>基于公开化知识主题整理。</span><span>联系 · <a href="mailto:173315279@qq.com">173315279@qq.com</a></span></footer><script src="../assets/site.js" defer></script></body>
+</html>

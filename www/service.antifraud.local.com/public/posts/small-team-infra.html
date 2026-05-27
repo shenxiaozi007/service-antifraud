@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>小团队工程底座：GitLab、Jenkins、Wiki、VPN 如何组合 | HXC</title>
+    <meta name="description" content="公开化总结小团队如何组合 GitLab、Jenkins、Wiki 与 VPN，形成稳定工程基础设施。" />
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href="https://my.hxcbox.cn/posts/small-team-infra.html" />
+    <meta property="og:title" content="小团队工程底座：GitLab、Jenkins、Wiki、VPN 如何组合 | HXC" />
+    <meta property="og:description" content="公开化总结小团队如何组合 GitLab、Jenkins、Wiki 与 VPN，形成稳定工程基础设施。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://my.hxcbox.cn/posts/small-team-infra.html" />
+    <link rel="stylesheet" href="../assets/article.css" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","name":"小团队工程底座：GitLab、Jenkins、Wiki、VPN 如何组合 | HXC","description":"公开化总结小团队如何组合 GitLab、Jenkins、Wiki 与 VPN，形成稳定工程基础设施。","url":"https://my.hxcbox.cn/posts/small-team-infra.html"}</script>
+
+  </head>
+  <body><canvas id="depth-field" aria-hidden="true"></canvas><div class="cursor-orb" aria-hidden="true"></div><header class="nav"><a class="brand" href="../index.html"><span class="brand-mark">HX</span><span>返回个人主页</span></a><nav class="nav-links"><a href="../index.html#archive">全部文章</a><a href="mailto:173315279@qq.com">173315279@qq.com</a></nav></header><main class="site-shell"><section class="post-hero"><div class="reveal"><p class="section-tag">Infra Notes / 03</p><h1>小团队<span>工程底座</span></h1><p class="lead">GitLab、Jenkins、Wiki 和 VPN 不是四个孤立工具，而是一套让代码、发布、知识和远程接入协同运转的基础设施。</p></div><aside class="signal-card reveal"><p class="micro-label">核心信号</p><strong>OPS</strong><p>工具只有被组合成路径，才会变成团队交付能力。</p><div class="chips"><span class="chip">GitLab</span><span class="chip">Jenkins</span><span class="chip">Wiki</span><span class="chip">VPN</span></div></aside></section><section class="post-grid"><article class="content-card reveal"><p class="section-tag">公开摘要</p><p>这篇文章来自工程基础设施平台主题的公开化总结，只讨论通用方法：如何让小团队拥有可持续维护的构建、发布、知识和接入底座。</p><h2 id="repo">GitLab：变更入口</h2><p>GitLab 不只是代码仓库，它承接分支策略、合并流程、Code Review 和变更追溯。对小团队来说，先把变更入口统一，比追求复杂流程更重要。</p><h2 id="ci">Jenkins：自动化发布骨架</h2><p>Jenkins 的核心价值在于把构建、测试、部署和回滚动作标准化。它让“谁来发、怎么发、发到哪里”从人工经验变成可重复流水线。</p><div class="pull">基础设施的目标不是炫技，而是让团队在紧急需求和线上故障里仍然有稳定路径。</div><h2 id="knowledge">Wiki 与 VPN：知识和接入</h2><ul><li>Wiki 记录环境、接口、排障 SOP 和上线注意事项，避免关键知识只存在于聊天记录。</li><li>VPN 负责安全接入和内网访问边界，让远程协作可控。</li><li>端口规划、依赖版本和本地工具链说明，是新人上手和故障定位的加速器。</li></ul></article><aside><div class="toc reveal"><p class="micro-label">阅读目录</p><a href="#repo">GitLab</a><a href="#ci">Jenkins</a><a href="#knowledge">Wiki / VPN</a></div><div class="next-card reveal" style="margin-top: var(--space-3)"><p class="micro-label">联系</p><a class="action" href="mailto:173315279@qq.com">173315279@qq.com</a><a href="../index.html">← 回到首页</a></div></aside></section></main><footer class="footer site-shell"><span>基于公开化知识主题整理。</span><span>联系 · <a href="mailto:173315279@qq.com">173315279@qq.com</a></span></footer><script src="../assets/site.js" defer></script></body>
+</html>

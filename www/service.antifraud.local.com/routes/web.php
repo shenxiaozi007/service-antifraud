@@ -13,8 +13,8 @@
 |
 */
 
-$router->get('/', function () use ($router) {
-    return $router->app->version();
+$router->get('/', function () {
+    return response()->file(base_path('public/home.html'));
 });
 
 $router->group([
