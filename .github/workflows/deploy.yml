@@ -27,33 +27,29 @@ jobs:
             cd $BASE_DIR
             git fetch --all
             
-            # 获取更新前后的 composer.json 的差异状态
-            COMPOSER_CHANGED=$(git diff --name-only HEAD origin/master | grep 'composer.json' || true)
+            # 获取更新前后的 composer.json / composer.lock 差异状态
+            COMPOSER_CHANGED=$(git diff --name-only HEAD origin/master | grep -E 'composer\.(json|lock)$' || true)
             
             git reset --hard origin/master
 
-            # 3. 如果 composer 有变动，则循环执行更新
-            if [ -n "$COMPOSER_CHANGED" ]; then
-              echo "检测到 composer.json 变动，开始更新依赖..."
-              
-              # 定义需要更新的子目录（相对于 BASE_DIR 的路径）
-              PROJECTS=(
-                "www/service.antifraud.local.com"
-                "www/service.storage.company.com"
-              )
+            # 3. 如果 composer 有变动，或 vendor/autoload.php 缺失，则安装依赖
+            PROJECTS=(
+              "www/service.antifraud.local.com"
+              "www/service.storage.company.com"
+            )
 
-              cd $LARADOCK_DIR
-              
-              for PROJECT in "${PROJECTS[@]}"; do
-                echo "正在更新: $PROJECT"
-                # 在容器内执行，加上内存限制解除和缓存优化
+            cd $LARADOCK_DIR
+
+            for PROJECT in "${PROJECTS[@]}"; do
+              if [ -n "$COMPOSER_CHANGED" ] || [ ! -f "$BASE_DIR/$PROJECT/vendor/autoload.php" ]; then
+                echo "开始安装依赖: $PROJECT"
                 docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 workspace \
                   composer install --working-dir=/var/www/service-antifraud/$PROJECT \
                   --no-dev --optimize-autoloader
-              done
-            else
-              echo "composer.json 未变动，跳过依赖更新。"
-            fi
+              else
+                echo "依赖无变化且 vendor 已存在，跳过: $PROJECT"
+              fi
+            done
             
             # 4. 后续操作（如清理 Laravel 缓存）
             # docker-compose exec -T php-fpm php artisan config:cache
