@@ -2,17 +2,17 @@
 
 ## 项目信息
 - 正式项目名：守护者max
-- 主域名：`188144.xyz`，已接入 Cloudflare CDN
+- 主域名：`hxcbox.cn`，已接入 Cloudflare CDN
 - 对象存储：Cloudflare R2
 - 前端主线：`apps/client`，`uni-app + Vue 3 + TypeScript`，优先发布 H5，再同步小程序/App
 - 后端服务：`www/service.antifraud.local.com`，Lumen API
 - LLM：第三方中转 API，通过环境变量配置 `LLM_BASE_URL`、`LLM_API_KEY`、`LLM_MODEL`
 
 ## 推荐域名规划
-- `https://188144.xyz`：用户端 H5，部署 `apps/client/dist/build/h5`
-- `https://api.188144.xyz`：后端 API，Cloudflare 代理到服务器 Nginx/PHP-FPM
-- `https://admin.188144.xyz`：后续管理端，建议同仓库新增 `apps/admin`
-- `https://assets.188144.xyz`：Cloudflare R2 资源域名，用于图片、音频、报告附件
+- `https://ant.hxcbox.cn`：反诈主服务 API，Cloudflare 代理到服务器 Nginx/PHP-FPM
+- `https://file.hxcbox.cn`：独立文件服务 API / 文件访问域名
+- 用户端 H5：部署 `apps/client/dist/build/h5`，如暂时没有独立 H5 域名，可先和主站域名或后续子域名绑定
+- 管理端：后续建议新增独立域名和 `apps/admin`
 
 管理端建议同仓库实现，但前端工程独立放在 `apps/admin`。后端管理接口继续放在当前 Lumen 服务的 `/management/proxy/*` 路由下，这样权限、日志、业务模型和部署链路都能复用。
 
@@ -21,7 +21,7 @@
 flowchart LR
   U["用户/管理人员"] --> CF["Cloudflare DNS/CDN/WAF"]
   CF --> H5["Cloudflare Pages 或 Nginx 静态站点"]
-  CF --> API["api.188144.xyz Nginx"]
+  CF --> API["ant.hxcbox.cn Nginx"]
   API --> PHP["PHP-FPM / Lumen"]
   PHP --> DB["MySQL"]
   PHP --> Redis["Redis / 队列"]
@@ -31,7 +31,7 @@ flowchart LR
 
 ## H5 发布流程
 1. 进入 `apps/client`。
-2. 设置生产 API 地址：`VITE_API_BASE_URL=https://api.188144.xyz`。
+2. 设置生产 API 地址：`VITE_API_BASE_URL=https://ant.hxcbox.cn`。
 3. 执行 `npm ci`。
 4. 执行 `npm run build:h5`。
 5. 将 `apps/client/dist/build/h5` 发布到 Cloudflare Pages，或上传到服务器 Nginx 静态目录。
@@ -47,7 +47,7 @@ H5 默认只依赖 API 域名，不再写死本地 `127.0.0.1:8000`。
 4. 执行 `docker compose --env-file www/service.antifraud.local.com/.env -f docs/docker/backend/docker-compose.prod.yml up -d --build`。
 5. 执行 `docker compose --env-file www/service.antifraud.local.com/.env -f docs/docker/backend/docker-compose.prod.yml exec app php artisan migrate --force`。
 6. 访问 `http://服务器IP/api/v1/system/health` 验证后端容器、Nginx 和路由正常。
-7. Cloudflare 将 `api.188144.xyz` 代理到服务器 80/443，SSL 模式建议使用 Full strict，源站配置有效证书。
+7. Cloudflare 将 `ant.hxcbox.cn` 代理到反诈主服务服务器 80/443，将 `file.hxcbox.cn` 代理到独立文件服务，SSL 模式建议使用 Full strict，源站配置有效证书。
 
 本地验证时如果只想使用本机已有镜像，先把 `API_HTTP_PORT` 改成未占用端口，例如 `18080`，再执行：
 
@@ -59,13 +59,12 @@ docker compose --env-file www/service.antifraud.local.com/.env -f docs/docker/ba
 
 ## Cloudflare 配置
 - DNS：
-  - `188144.xyz` 指向 H5 站点。
-  - `api.188144.xyz` 指向后端服务器，并开启代理。
-  - `admin.188144.xyz` 预留给管理端。
-  - `assets.188144.xyz` 绑定 R2 自定义域名。
+  - `ant.hxcbox.cn` 指向反诈主服务服务器，并开启代理。
+  - `file.hxcbox.cn` 指向独立文件服务服务器，或绑定对象存储自定义域名。
+  - H5 若单独发布，建议追加独立前端域名并写入主服务 `CORS_ALLOWED_ORIGINS`。
 - 安全：
   - 对 `/api/v1/auth/*` 和分析接口加基础限流。
-  - 管理端上线前可先用 Cloudflare Access 保护 `admin.188144.xyz`。
+  - 管理端上线前可先用 Cloudflare Access 保护管理端域名。
   - 后端 `CORS_ALLOWED_ORIGINS` 只允许正式 H5、管理端域名。
 
 ## 生产前必须补齐
@@ -78,7 +77,7 @@ docker compose --env-file www/service.antifraud.local.com/.env -f docs/docker/ba
 
 ## 上线顺序
 1. 先部署后端测试环境，跑通 migration 和 `/api/v1/system/health`。
-2. 再部署 H5 到 `188144.xyz`，确认 CORS、登录、报告列表可用。
+2. 再部署 H5，确认 CORS、登录、报告列表可用。
 3. 接入 R2 上传，联调图片/音频文件链路。
 4. 接入 LLM/OCR/ASR 真实分析链路。
 5. 开 Cloudflare WAF/限流，关闭 `APP_DEBUG`。

@@ -1,3 +1,3 @@
 module.exports = {
-  baseURL: 'http://127.0.0.1:8000'
+  baseURL: 'https://ant.hxcbox.cn'
 };
