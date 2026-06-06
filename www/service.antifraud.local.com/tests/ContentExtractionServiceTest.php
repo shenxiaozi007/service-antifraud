@@ -105,6 +105,28 @@ class ContentExtractionServiceTest extends TestCase
             return str_starts_with($imageUrl, 'data:image/jpeg;base64,');
         });
     }
+
+    public function test_llm_client_disables_image_provider_when_image_download_fails(): void
+    {
+        config([
+            'llm.base_url' => 'https://llm.example.com/v1',
+            'llm.api_key' => 'test-key',
+            'llm.vision_model' => 'vision-model',
+        ]);
+        Http::fake([
+            'https://r2.example.com/private.jpeg' => Http::response('bad request', 400),
+            'https://llm.example.com/v1/chat/completions' => Http::response([
+                'choices' => [
+                    ['message' => ['content' => 'should not be called']],
+                ],
+            ]),
+        ]);
+
+        $result = app(LlmClient::class)->describeImage('https://r2.example.com/private.jpeg');
+
+        $this->assertFalse($result['enabled']);
+        Http::assertNotSent(fn ($request) => $request->url() === 'https://llm.example.com/v1/chat/completions');
+    }
 }
 
 class FakeExtractionLlmClient extends LlmClient

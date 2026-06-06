@@ -51,6 +51,9 @@ class LlmClient
     public function describeImage(string $imageUrl): array
     {
         $imageInput = $this->imageInput($imageUrl);
+        if ($imageInput === '') {
+            return ['enabled' => false];
+        }
 
         return $this->vision([
             ['type' => 'text', 'text' => '请提取图片中的文字、金额、联系方式、转账信息和可疑诈骗话术，输出纯文本摘要。'],
@@ -131,22 +134,22 @@ class LlmClient
         try {
             $response = Http::timeout((int) config('llm.image_download_timeout', 15))->get($imageUrl);
             if (!$response->successful()) {
-                return $imageUrl;
+                return '';
             }
 
             $body = $response->body();
             if ($body === '' || strlen($body) > $maxBytes) {
-                return $imageUrl;
+                return '';
             }
 
             $contentType = (string) ($response->header('Content-Type') ?: $this->guessImageContentType($imageUrl));
             if (!str_starts_with($contentType, 'image/')) {
-                return $imageUrl;
+                return '';
             }
 
             return 'data:'.$contentType.';base64,'.base64_encode($body);
         } catch (\Throwable) {
-            return $imageUrl;
+            return '';
         }
     }
 
