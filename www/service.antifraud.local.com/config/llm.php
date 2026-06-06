@@ -9,4 +9,6 @@ return [
     'timeout' => (int) env('LLM_TIMEOUT', 60),
     'image_download_timeout' => (int) env('LLM_IMAGE_DOWNLOAD_TIMEOUT', 15),
     'image_inline_max_bytes' => (int) env('LLM_IMAGE_INLINE_MAX_BYTES', 5242880),
+    'audio_download_timeout' => (int) env('LLM_AUDIO_DOWNLOAD_TIMEOUT', 30),
+    'audio_inline_max_bytes' => (int) env('LLM_AUDIO_INLINE_MAX_BYTES', 26214400),
 ];

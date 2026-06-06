@@ -12,6 +12,7 @@ const duration = ref(0);
 const text = ref('');
 const loading = ref(false);
 const startedAt = ref(0);
+const startingRecord = ref(false);
 let timer: ReturnType<typeof setInterval> | null = null;
 const recorder = uni.getRecorderManager();
 let webRecorder: MediaRecorder | null = null;
@@ -46,6 +47,7 @@ function isWebRecorderAvailable() {
 
 // 方法：统一初始化录音 UI 状态，开始录音和重新录音时都需要清理旧音频
 function prepareRecordingState() {
+  clearTimer();
   startedAt.value = Date.now();
   recording.value = true;
   audioPath.value = '';
@@ -57,10 +59,11 @@ function prepareRecordingState() {
 
 // 方法：开始录音，H5 使用浏览器 MediaRecorder，小程序/App 继续使用 uni recorder
 async function startRecord() {
-  if (recording.value) {
+  if (recording.value || startingRecord.value) {
     return;
   }
 
+  startingRecord.value = true;
   if (isWebRecorderAvailable()) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -72,8 +75,6 @@ async function startRecord() {
         }
       };
       webRecorder.onstop = () => {
-        clearTimer();
-        duration.value = Math.max(1, Math.ceil((Date.now() - startedAt.value) / 1000));
         const blob = new Blob(webAudioChunks, { type: webRecorder?.mimeType || 'audio/webm' });
         audioPath.value = URL.createObjectURL(blob);
         webRecorder?.stream.getTracks().forEach((track) => track.stop());
@@ -82,23 +83,29 @@ async function startRecord() {
       };
       prepareRecordingState();
       webRecorder.start();
+      startingRecord.value = false;
       return;
     } catch (error) {
       uni.showToast({ title: '无法使用麦克风', icon: 'none' });
       recording.value = false;
+      startingRecord.value = false;
       clearTimer();
       return;
     }
   }
 
   prepareRecordingState();
-  recorder.start({
-    duration: 600000,
-    sampleRate: 16000,
-    numberOfChannels: 1,
-    encodeBitRate: 48000,
-    format: 'mp3'
-  });
+  try {
+    recorder.start({
+      duration: 600000,
+      sampleRate: 16000,
+      numberOfChannels: 1,
+      encodeBitRate: 48000,
+      format: 'mp3'
+    });
+  } finally {
+    startingRecord.value = false;
+  }
 }
 
 // 方法：结束录音，H5 和 uni recorder 分别停止，并用本地状态兜底避免按钮卡住
@@ -106,6 +113,9 @@ function stopRecord() {
   if (!recording.value) {
     return;
   }
+
+  clearTimer();
+  duration.value = Math.max(1, Math.ceil((Date.now() - startedAt.value) / 1000));
 
   if (webRecorder) {
     webRecorder.stop();
@@ -124,6 +134,7 @@ function stopRecord() {
 
 // 方法：清空当前录音结果，允许用户重新录制
 function resetRecord() {
+  clearTimer();
   audioPath.value = '';
   duration.value = 0;
 }
@@ -170,8 +181,8 @@ function clearTimer() {
     <view class="card recorder">
       <view class="timer">{{ displayDuration }}</view>
       <view class="muted">{{ recording ? '正在录音' : audioPath ? '录音已就绪' : '当前计费：10点/分钟' }}</view>
-      <view v-if="!recording && !audioPath" class="button secondary record-button" @click="startRecord" @tap="startRecord">开始录音</view>
-      <view v-if="recording" class="button secondary record-button stop-button" @click="stopRecord" @tap="stopRecord">结束录音</view>
+      <view v-if="!recording && !audioPath" class="button secondary record-button" @click="startRecord">开始录音</view>
+      <view v-if="recording" class="button secondary record-button stop-button" @click="stopRecord">结束录音</view>
       <view v-if="audioPath && !recording" class="button ghost" @tap="resetRecord">重新录音</view>
     </view>
 

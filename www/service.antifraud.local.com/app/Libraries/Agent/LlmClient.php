@@ -67,11 +67,43 @@ class LlmClient
             return ['enabled' => false];
         }
 
-        $prompt = "请根据以下音频文件URL进行转写，输出对话纯文本。如果无法直接访问，请说明无法转写并提取文件名线索：\n".$audioUrl;
+        $baseUrl = rtrim((string) config('llm.base_url'), '/');
+        $apiKey = (string) config('llm.api_key');
+        $model = (string) config('llm.audio_model', '') ?: (string) config('llm.model', '');
+        if ($baseUrl === '' || $apiKey === '' || $model === '') {
+            return ['enabled' => false];
+        }
 
-        return $this->vision([
-            ['type' => 'text', 'text' => $prompt],
-        ], (string) config('llm.audio_model', '') ?: (string) config('llm.model', ''));
+        $audio = $this->downloadAudio($audioUrl);
+        if (!$audio) {
+            return ['enabled' => false];
+        }
+
+        $started = microtime(true);
+        $response = Http::timeout((int) config('llm.timeout', 60))
+            ->withToken($apiKey)
+            ->acceptJson()
+            ->attach('file', $audio['body'], $audio['filename'])
+            ->post($baseUrl.'/audio/transcriptions', [
+                'model' => $model,
+                'response_format' => 'json',
+            ]);
+
+        $durationMs = (int) round((microtime(true) - $started) * 1000);
+        if (!$response->successful()) {
+            return ['enabled' => true, 'success' => false, 'model' => $model, 'duration_ms' => $durationMs, 'raw' => $response->body()];
+        }
+
+        $body = $response->json();
+
+        return [
+            'enabled' => true,
+            'success' => is_array($body) && (string) ($body['text'] ?? '') !== '',
+            'model' => $model,
+            'duration_ms' => $durationMs,
+            'text' => (string) ($body['text'] ?? ''),
+            'raw' => $body,
+        ];
     }
 
     protected function vision(array $content, string $model = ''): array
@@ -164,5 +196,48 @@ class LlmClient
             'gif' => 'image/gif',
             default => 'image/jpeg',
         };
+    }
+
+    protected function downloadAudio(string $audioUrl): ?array
+    {
+        $maxBytes = (int) config('llm.audio_inline_max_bytes', 25 * 1024 * 1024);
+        try {
+            $response = Http::timeout((int) config('llm.audio_download_timeout', 30))->get($audioUrl);
+            if (!$response->successful()) {
+                return null;
+            }
+
+            $body = $response->body();
+            if ($body === '' || strlen($body) > $maxBytes) {
+                return null;
+            }
+
+            return [
+                'body' => $body,
+                'filename' => $this->audioFilename($audioUrl, (string) $response->header('Content-Type')),
+            ];
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    protected function audioFilename(string $audioUrl, string $contentType = ''): string
+    {
+        $path = parse_url($audioUrl, PHP_URL_PATH) ?: '';
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        if ($extension !== '') {
+            return 'audio.'.$extension;
+        }
+
+        $extension = match (strtolower(strtok($contentType, ';') ?: '')) {
+            'audio/mpeg', 'audio/mp3' => 'mp3',
+            'audio/mp4', 'audio/m4a', 'audio/x-m4a' => 'm4a',
+            'audio/wav', 'audio/x-wav' => 'wav',
+            'audio/ogg' => 'ogg',
+            'audio/webm' => 'webm',
+            default => 'mp3',
+        };
+
+        return 'audio.'.$extension;
     }
 }

@@ -165,6 +165,48 @@ class ContentExtractionServiceTest extends TestCase
         $this->assertFalse($result['enabled']);
         Http::assertNotSent(fn ($request) => $request->url() === 'https://llm.example.com/v1/chat/completions');
     }
+
+    public function test_llm_client_transcribes_downloaded_audio_file(): void
+    {
+        config([
+            'llm.base_url' => 'https://llm.example.com/v1',
+            'llm.api_key' => 'test-key',
+            'llm.audio_model' => 'asr-model',
+            'llm.audio_inline_max_bytes' => 1024,
+        ]);
+        Http::fake([
+            'https://signed.example.com/audio.m4a' => Http::response('fake-audio-bytes', 200, ['Content-Type' => 'audio/mp4']),
+            'https://llm.example.com/v1/audio/transcriptions' => Http::response([
+                'text' => '不要告诉家人，把验证码发给我',
+            ]),
+        ]);
+
+        $result = app(LlmClient::class)->transcribeAudio('https://signed.example.com/audio.m4a');
+
+        $this->assertTrue($result['success']);
+        $this->assertSame('不要告诉家人，把验证码发给我', $result['text']);
+        Http::assertSent(fn ($request) => $request->url() === 'https://llm.example.com/v1/audio/transcriptions');
+    }
+
+    public function test_llm_client_disables_audio_provider_when_audio_download_fails(): void
+    {
+        config([
+            'llm.base_url' => 'https://llm.example.com/v1',
+            'llm.api_key' => 'test-key',
+            'llm.audio_model' => 'asr-model',
+        ]);
+        Http::fake([
+            'https://signed.example.com/missing.m4a' => Http::response('missing', 404),
+            'https://llm.example.com/v1/audio/transcriptions' => Http::response([
+                'text' => 'should not be called',
+            ]),
+        ]);
+
+        $result = app(LlmClient::class)->transcribeAudio('https://signed.example.com/missing.m4a');
+
+        $this->assertFalse($result['enabled']);
+        Http::assertNotSent(fn ($request) => $request->url() === 'https://llm.example.com/v1/audio/transcriptions');
+    }
 }
 
 class FakeExtractionLlmClient extends LlmClient
