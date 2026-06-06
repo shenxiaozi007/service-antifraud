@@ -18,6 +18,7 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 30m
           script: |
             # 1. 定义项目根目录
             BASE_DIR="/var/www/service-antifraud"
