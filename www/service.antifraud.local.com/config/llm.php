@@ -11,4 +11,8 @@ return [
     'image_inline_max_bytes' => (int) env('LLM_IMAGE_INLINE_MAX_BYTES', 5242880),
     'audio_download_timeout' => (int) env('LLM_AUDIO_DOWNLOAD_TIMEOUT', 30),
     'audio_inline_max_bytes' => (int) env('LLM_AUDIO_INLINE_MAX_BYTES', 26214400),
+    'asr_service_url' => env('ASR_SERVICE_URL', ''),
+    'asr_model' => env('ASR_MODEL_SIZE', 'tiny'),
+    'asr_timeout' => (int) env('ASR_TIMEOUT', 120),
+    'asr_language' => env('ASR_LANGUAGE', 'zh'),
 ];

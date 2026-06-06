@@ -3,10 +3,12 @@
 namespace Tests;
 
 use App\Libraries\CommonService\CommonServiceClient;
+use App\Libraries\Agent\ContentExtractionService;
 use App\Modules\Basics\Constant\PointConstant;
 use App\Modules\Basics\Dao\AnalysisRecordDao;
 use App\Modules\Basics\Dao\RiskItemDao;
 use App\Modules\Basics\Model\AnalysisRecord;
+use App\Modules\Basics\Model\FileAsset;
 use App\Modules\Basics\Model\User;
 use App\Modules\Service\AnalysisBusiness;
 use App\Modules\Service\RiskAnalysisBusiness;
@@ -140,6 +142,77 @@ class AnalysisBusinessRulesTest extends TestCase
         $this->assertTrue($record->successSavedBeforeConfirm);
     }
 
+    public function test_process_record_uses_user_text_and_skips_audio_transcription(): void
+    {
+        $record = new InMemoryProcessAnalysisRecord();
+        $record->id = 790;
+        $record->retry_count = 0;
+        $record->frozen_points = 10;
+        $record->summary = '不要告诉家人，把验证码发给我';
+        $record->setRelation('user', (object) ['global_user_id' => 10003]);
+
+        $file = new InMemoryProcessFileAsset([
+            'id' => 9,
+            'file_type' => 'audio',
+            'transcript_status' => 'pending',
+        ]);
+        $record->setRelation('fileAssets', collect([$file]));
+
+        DB::shouldReceive('transaction')->andReturnUsing(fn ($callback) => $callback());
+
+        $riskBusiness = new TrackingRiskAnalysisBusiness();
+        $business = $this->analysisBusinessWithoutConstructor();
+        $this->setTypedProperty($business, 'analysisRecordDao', new InMemoryProcessAnalysisRecordDao($record));
+        $this->setTypedProperty($business, 'riskItemDao', new InMemoryRiskItemDao());
+        $this->setTypedProperty($business, 'riskAnalysisBusiness', $riskBusiness);
+        $this->setTypedProperty($business, 'contentExtractionService', new FailingContentExtractionService());
+        $this->setCommonServiceClient($business, new FakeCommonServiceClient());
+
+        $business->processRecord(790);
+
+        $this->assertSame('success', $record->status);
+        $this->assertSame('不要告诉家人，把验证码发给我', $riskBusiness->lastText);
+        $this->assertSame('skipped', $file->transcript_status);
+        $this->assertTrue($file->saved);
+    }
+
+    public function test_process_record_fails_when_audio_has_no_user_text_and_only_fallback_text(): void
+    {
+        $record = new InMemoryProcessAnalysisRecord();
+        $record->id = 791;
+        $record->retry_count = 0;
+        $record->frozen_points = 10;
+        $record->summary = '';
+        $record->setRelation('user', (object) ['global_user_id' => 10004]);
+
+        $file = new InMemoryProcessFileAsset([
+            'id' => 10,
+            'file_type' => 'audio',
+            'transcript_status' => 'pending',
+        ]);
+        $record->setRelation('fileAssets', collect([$file]));
+
+        $client = new FakeCommonServiceClient();
+        $business = $this->analysisBusinessWithoutConstructor();
+        $this->setTypedProperty($business, 'analysisRecordDao', new InMemoryProcessAnalysisRecordDao($record));
+        $this->setTypedProperty($business, 'riskItemDao', new InMemoryRiskItemDao());
+        $this->setTypedProperty($business, 'riskAnalysisBusiness', new TrackingRiskAnalysisBusiness());
+        $this->setTypedProperty($business, 'contentExtractionService', new FallbackContentExtractionService());
+        $this->setCommonServiceClient($business, $client);
+
+        $business->processRecord(791);
+
+        $this->assertSame('failed', $record->status);
+        $this->assertSame('音频转写不可用，请输入文字内容后重试', $record->error_message);
+        $this->assertSame(0, $record->frozen_points);
+        $this->assertSame([[
+            'global_user_id' => 10004,
+            'amount' => 10,
+            'related_no' => 'analysis:791:0',
+            'remark' => '分析失败退回点数',
+        ]], $client->releaseCalls);
+    }
+
     public function test_records_accepts_status_filter_and_passes_it_to_dao(): void
     {
         $dao = new InMemoryAnalysisRecordPageDao();
@@ -199,6 +272,19 @@ class InMemoryAnalysisRecord extends AnalysisRecord
 class FakeCommonServiceClient extends CommonServiceClient
 {
     public array $releaseCalls = [];
+    public array $confirmCalls = [];
+
+    public function confirm(int $globalUserId, int $amount, string $relatedNo, string $remark): array
+    {
+        $this->confirmCalls[] = [
+            'global_user_id' => $globalUserId,
+            'amount' => $amount,
+            'related_no' => $relatedNo,
+            'remark' => $remark,
+        ];
+
+        return ['success' => true];
+    }
 
     public function release(int $globalUserId, int $amount, string $relatedNo, string $remark): array
     {
@@ -319,6 +405,57 @@ class InMemoryProcessRiskAnalysisBusiness extends RiskAnalysisBusiness
                 ['category' => '收益承诺', 'severity' => 'high', 'description' => '承诺稳赚不赔'],
             ],
         ];
+    }
+}
+
+class TrackingRiskAnalysisBusiness extends InMemoryProcessRiskAnalysisBusiness
+{
+    public string $lastText = '';
+
+    public function analyze(string $text): array
+    {
+        $this->lastText = $text;
+
+        return parent::analyze($text);
+    }
+}
+
+class FailingContentExtractionService extends ContentExtractionService
+{
+    public function __construct()
+    {
+    }
+
+    public function extract($file): array
+    {
+        throw new \RuntimeException('should not transcribe');
+    }
+}
+
+class FallbackContentExtractionService extends ContentExtractionService
+{
+    public function __construct()
+    {
+    }
+
+    public function extract($file): array
+    {
+        return [
+            'text' => '文件 file_abc 已上传，当前未配置识别供应商，暂使用文件URL和用户补充文本作为识别输入：https://example.com/audio.webm',
+            'status' => 'success',
+        ];
+    }
+}
+
+class InMemoryProcessFileAsset extends FileAsset
+{
+    public bool $saved = false;
+
+    public function save(array $options = []): bool
+    {
+        $this->saved = true;
+
+        return true;
     }
 }
 

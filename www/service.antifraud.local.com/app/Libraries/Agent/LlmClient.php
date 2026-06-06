@@ -61,21 +61,35 @@ class LlmClient
         ]);
     }
 
+    /**
+     * 转写音频内容。
+     *
+     * 优先调用本机轻量 ASR 服务；本机 ASR 未配置时，才回退到兼容 OpenAI
+     * audio/transcriptions 协议的外部 LLM 服务。
+     *
+     * @param string $audioUrl 音频下载地址
+     * @return array
+     */
     public function transcribeAudio(string $audioUrl): array
     {
         if ($audioUrl === '') {
             return ['enabled' => false];
         }
 
+        $audio = $this->downloadAudio($audioUrl);
+        if (!$audio) {
+            return ['enabled' => false];
+        }
+
+        $localAsrResult = $this->transcribeAudioByLocalAsr($audio);
+        if (($localAsrResult['enabled'] ?? false) === true) {
+            return $localAsrResult;
+        }
+
         $baseUrl = rtrim((string) config('llm.base_url'), '/');
         $apiKey = (string) config('llm.api_key');
         $model = (string) config('llm.audio_model', '') ?: (string) config('llm.model', '');
         if ($baseUrl === '' || $apiKey === '' || $model === '') {
-            return ['enabled' => false];
-        }
-
-        $audio = $this->downloadAudio($audioUrl);
-        if (!$audio) {
             return ['enabled' => false];
         }
 
@@ -102,6 +116,61 @@ class LlmClient
             'model' => $model,
             'duration_ms' => $durationMs,
             'text' => (string) ($body['text'] ?? ''),
+            'raw' => $body,
+        ];
+    }
+
+    /**
+     * 调用本机轻量 ASR 服务转写音频。
+     *
+     * @param array $audio 已下载音频内容，包含 body 和 filename
+     * @return array
+     */
+    protected function transcribeAudioByLocalAsr(array $audio): array
+    {
+        $serviceUrl = rtrim((string) config('llm.asr_service_url', ''), '/');
+        if ($serviceUrl === '') {
+            return ['enabled' => false];
+        }
+
+        $started = microtime(true);
+        try {
+            $response = Http::timeout((int) config('llm.asr_timeout', 120))
+                ->acceptJson()
+                ->attach('file', $audio['body'], $audio['filename'])
+                ->post($serviceUrl.'/transcribe', [
+                    'language' => (string) config('llm.asr_language', 'zh'),
+                ]);
+        } catch (\Throwable $exception) {
+            return [
+                'enabled' => true,
+                'success' => false,
+                'model' => (string) config('llm.asr_model', 'tiny'),
+                'duration_ms' => (int) round((microtime(true) - $started) * 1000),
+                'raw' => $exception->getMessage(),
+            ];
+        }
+
+        $durationMs = (int) round((microtime(true) - $started) * 1000);
+        if (!$response->successful()) {
+            return [
+                'enabled' => true,
+                'success' => false,
+                'model' => (string) config('llm.asr_model', 'tiny'),
+                'duration_ms' => $durationMs,
+                'raw' => $response->body(),
+            ];
+        }
+
+        $body = $response->json();
+        $text = trim((string) ($body['text'] ?? ''));
+
+        return [
+            'enabled' => true,
+            'success' => $text !== '',
+            'model' => (string) ($body['model'] ?? config('llm.asr_model', 'tiny')),
+            'duration_ms' => $durationMs,
+            'text' => $text,
             'raw' => $body,
         ];
     }

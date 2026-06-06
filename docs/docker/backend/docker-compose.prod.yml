@@ -12,6 +12,7 @@ services:
     depends_on:
       - mysql
       - redis
+      - asr
 
   nginx:
     image: nginx:1.27-alpine
@@ -38,6 +39,7 @@ services:
     depends_on:
       - mysql
       - redis
+      - asr
 
   common-worker:
     build:
@@ -52,6 +54,19 @@ services:
     depends_on:
       - mysql
       - redis
+
+  asr:
+    build:
+      context: ../../..
+      dockerfile: docs/docker/asr/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASR_MODEL_SIZE: "${ASR_MODEL_SIZE:-tiny}"
+      ASR_DEVICE: cpu
+      ASR_COMPUTE_TYPE: int8
+      ASR_CPU_THREADS: "${ASR_CPU_THREADS:-1}"
+    volumes:
+      - asr_models:/models
 
   mysql:
     image: "${MYSQL_IMAGE:-mysql:8.0}"
@@ -85,3 +100,4 @@ volumes:
   redis_data:
   antifraud_storage:
   common_storage:
+  asr_models:

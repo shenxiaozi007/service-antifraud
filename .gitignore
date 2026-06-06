@@ -29,3 +29,5 @@ Thumbs.db
 
 # Test / cache
 .phpunit.result.cache
+__pycache__/
+*.py[cod]

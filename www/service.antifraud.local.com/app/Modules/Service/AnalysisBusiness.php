@@ -206,6 +206,12 @@ class AnalysisBusiness extends BaseBusiness
         ];
     }
 
+    /**
+     * 处理待分析记录。
+     *
+     * @param int $recordId 分析记录 ID
+     * @return void
+     */
     public function processRecord(int $recordId): void
     {
         $record = $this->analysisRecordDao->findWithDetail($recordId);
@@ -217,14 +223,23 @@ class AnalysisBusiness extends BaseBusiness
 
         try {
             $textParts = [];
-            if ($record->summary) {
-                $textParts[] = $record->summary;
+            $hasUserText = filled(trim((string) $record->summary));
+            if ($hasUserText) {
+                $textParts[] = trim((string) $record->summary);
             }
             foreach ($record->fileAssets as $file) {
+                if ($hasUserText && $file->file_type === AnalysisConstant::TYPE_AUDIO) {
+                    $this->skipAudioTranscriptionWhenUserTextExists($file);
+                    continue;
+                }
+
                 try {
-                    $textParts[] = $this->contentExtractionService->extract($file)['text'];
+                    $extractedText = (string) ($this->contentExtractionService->extract($file)['text'] ?? '');
+                    if (!$this->isFallbackExtractionText($extractedText)) {
+                        $textParts[] = $extractedText;
+                    }
                 } catch (\Throwable $exception) {
-                    if (!$record->summary) {
+                    if (!$hasUserText) {
                         throw $exception;
                     }
 
@@ -232,6 +247,10 @@ class AnalysisBusiness extends BaseBusiness
                 }
             }
             $text = trim(implode("\n", array_filter($textParts)));
+            if ($text === '') {
+                throw new \RuntimeException('音频转写不可用，请输入文字内容后重试');
+            }
+
             $result = $this->riskAnalysisBusiness->analyze($text);
             $costPoints = (int) $record->frozen_points;
             $relatedNo = $this->walletRelatedNo($record);
@@ -242,6 +261,34 @@ class AnalysisBusiness extends BaseBusiness
             $this->releaseFrozenPoints($record, $costPoints ?? (int) $record->frozen_points, '分析失败退回点数');
             $this->markRecordFailed($record, $e);
         }
+    }
+
+    /**
+     * 用户已经提供录音文字内容时，跳过音频转写。
+     *
+     * @param mixed $file 文件模型
+     * @return void
+     */
+    private function skipAudioTranscriptionWhenUserTextExists($file): void
+    {
+        if (($file->transcript_status ?? '') === 'pending') {
+            $file->fill([
+                'transcript_status' => 'skipped',
+                'transcript_error' => null,
+            ])->save();
+        }
+    }
+
+    /**
+     * 判断文件识别结果是否只是系统占位文案。
+     *
+     * @param string $text 文件识别返回文本
+     * @return bool
+     */
+    private function isFallbackExtractionText(string $text): bool
+    {
+        return str_contains($text, '当前未配置识别供应商')
+            || str_contains($text, '暂使用文件URL和用户补充文本作为识别输入');
     }
 
     private function fillSuccessRecord($record, array $result, int $costPoints): void

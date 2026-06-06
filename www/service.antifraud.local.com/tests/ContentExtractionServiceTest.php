@@ -188,6 +188,36 @@ class ContentExtractionServiceTest extends TestCase
         Http::assertSent(fn ($request) => $request->url() === 'https://llm.example.com/v1/audio/transcriptions');
     }
 
+    public function test_llm_client_prefers_local_asr_service_for_audio_transcription(): void
+    {
+        config([
+            'llm.base_url' => 'https://llm.example.com/v1',
+            'llm.api_key' => 'test-key',
+            'llm.audio_model' => 'asr-model',
+            'llm.audio_inline_max_bytes' => 1024,
+            'llm.asr_service_url' => 'http://asr:8000',
+            'llm.asr_language' => 'zh',
+        ]);
+        Http::fake([
+            'https://signed.example.com/audio.webm' => Http::response('fake-audio-bytes', 200, ['Content-Type' => 'audio/webm']),
+            'http://asr:8000/transcribe' => Http::response([
+                'text' => '不要告诉家人，把验证码发给我',
+                'model' => 'tiny',
+            ]),
+            'https://llm.example.com/v1/audio/transcriptions' => Http::response([
+                'text' => 'should not be called',
+            ]),
+        ]);
+
+        $result = app(LlmClient::class)->transcribeAudio('https://signed.example.com/audio.webm');
+
+        $this->assertTrue($result['success']);
+        $this->assertSame('tiny', $result['model']);
+        $this->assertSame('不要告诉家人，把验证码发给我', $result['text']);
+        Http::assertSent(fn ($request) => $request->url() === 'http://asr:8000/transcribe');
+        Http::assertNotSent(fn ($request) => $request->url() === 'https://llm.example.com/v1/audio/transcriptions');
+    }
+
     public function test_llm_client_disables_audio_provider_when_audio_download_fails(): void
     {
         config([

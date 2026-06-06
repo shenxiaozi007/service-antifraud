@@ -51,5 +51,39 @@ jobs:
               fi
             done
             
-            # 4. 后续操作（如清理 Laravel 缓存）
-            # docker-compose exec -T php-fpm php artisan config:cache
+            # 4. 启动/更新本机轻量 ASR 服务
+            cd $BASE_DIR
+            docker build -f docs/docker/asr/Dockerfile -t service-antifraud-asr:latest .
+            docker rm -f service-antifraud-asr || true
+            DOCKER_NETWORK=$(docker network ls --format '{{.Name}}' | grep -E '^laradock_(backend|default)$' | head -n 1)
+            if [ -z "$DOCKER_NETWORK" ]; then
+              DOCKER_NETWORK=$(docker network ls --format '{{.Name}}' | grep 'laradock' | head -n 1)
+            fi
+            if [ -z "$DOCKER_NETWORK" ]; then
+              DOCKER_NETWORK=bridge
+            fi
+            docker run -d \
+              --name service-antifraud-asr \
+              --restart unless-stopped \
+              --network "$DOCKER_NETWORK" \
+              -e ASR_MODEL_SIZE="${ASR_MODEL_SIZE:-tiny}" \
+              -e ASR_DEVICE=cpu \
+              -e ASR_COMPUTE_TYPE=int8 \
+              -e ASR_CPU_THREADS="${ASR_CPU_THREADS:-1}" \
+              -v service_antifraud_asr_models:/models \
+              service-antifraud-asr:latest
+
+            # 5. 确保反诈服务可通过 Docker 网络访问 ASR
+            ANT_ENV="$BASE_DIR/www/service.antifraud.local.com/.env"
+            if [ -f "$ANT_ENV" ]; then
+              if grep -q '^ASR_SERVICE_URL=' "$ANT_ENV"; then
+                sed -i 's#^ASR_SERVICE_URL=.*#ASR_SERVICE_URL=http://service-antifraud-asr:8000#' "$ANT_ENV"
+              else
+                printf '\nASR_SERVICE_URL=http://service-antifraud-asr:8000\nASR_TIMEOUT=120\nASR_LANGUAGE=zh\nASR_MODEL_SIZE=tiny\nASR_CPU_THREADS=1\n' >> "$ANT_ENV"
+              fi
+            fi
+
+            # 6. 重启 PHP-FPM 与队列 worker，使新配置和新代码生效
+            cd $LARADOCK_DIR
+            docker-compose restart php-fpm
+            docker-compose restart php-worker || true
