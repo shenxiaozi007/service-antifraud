@@ -14,6 +14,8 @@ const loading = ref(false);
 const startedAt = ref(0);
 let timer: ReturnType<typeof setInterval> | null = null;
 const recorder = uni.getRecorderManager();
+let webRecorder: MediaRecorder | null = null;
+let webAudioChunks: Blob[] = [];
 
 const canSubmit = computed(() => !loading.value && (Boolean(audioPath.value) || text.value.length > 0));
 const displayDuration = computed(() => durationText(duration.value));
@@ -29,10 +31,21 @@ onLoad(() => {
 });
 
 onBeforeUnmount(() => {
+  if (recording.value) {
+    stopRecord();
+  }
   clearTimer();
 });
 
-function startRecord() {
+// 方法：判断当前是否在普通浏览器 H5 环境，用于切换到 MediaRecorder 兼容实现
+function isWebRecorderAvailable() {
+  return typeof window !== 'undefined'
+    && Boolean(navigator?.mediaDevices?.getUserMedia)
+    && typeof MediaRecorder !== 'undefined';
+}
+
+// 方法：统一初始化录音 UI 状态，开始录音和重新录音时都需要清理旧音频
+function prepareRecordingState() {
   startedAt.value = Date.now();
   recording.value = true;
   audioPath.value = '';
@@ -40,6 +53,45 @@ function startRecord() {
   timer = setInterval(() => {
     duration.value = Math.floor((Date.now() - startedAt.value) / 1000);
   }, 1000);
+}
+
+// 方法：开始录音，H5 使用浏览器 MediaRecorder，小程序/App 继续使用 uni recorder
+async function startRecord() {
+  if (recording.value) {
+    return;
+  }
+
+  if (isWebRecorderAvailable()) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      webAudioChunks = [];
+      webRecorder = new MediaRecorder(stream);
+      webRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          webAudioChunks.push(event.data);
+        }
+      };
+      webRecorder.onstop = () => {
+        clearTimer();
+        duration.value = Math.max(1, Math.ceil((Date.now() - startedAt.value) / 1000));
+        const blob = new Blob(webAudioChunks, { type: webRecorder?.mimeType || 'audio/webm' });
+        audioPath.value = URL.createObjectURL(blob);
+        webRecorder?.stream.getTracks().forEach((track) => track.stop());
+        webRecorder = null;
+        recording.value = false;
+      };
+      prepareRecordingState();
+      webRecorder.start();
+      return;
+    } catch (error) {
+      uni.showToast({ title: '无法使用麦克风', icon: 'none' });
+      recording.value = false;
+      clearTimer();
+      return;
+    }
+  }
+
+  prepareRecordingState();
   recorder.start({
     duration: 600000,
     sampleRate: 16000,
@@ -49,10 +101,28 @@ function startRecord() {
   });
 }
 
+// 方法：结束录音，H5 和 uni recorder 分别停止，并用本地状态兜底避免按钮卡住
 function stopRecord() {
+  if (!recording.value) {
+    return;
+  }
+
+  if (webRecorder) {
+    webRecorder.stop();
+    return;
+  }
+
   recorder.stop();
+  setTimeout(() => {
+    if (recording.value) {
+      clearTimer();
+      duration.value = Math.max(1, Math.ceil((Date.now() - startedAt.value) / 1000));
+      recording.value = false;
+    }
+  }, 300);
 }
 
+// 方法：清空当前录音结果，允许用户重新录制
 function resetRecord() {
   audioPath.value = '';
   duration.value = 0;
@@ -100,8 +170,8 @@ function clearTimer() {
     <view class="card recorder">
       <view class="timer">{{ displayDuration }}</view>
       <view class="muted">{{ recording ? '正在录音' : audioPath ? '录音已就绪' : '当前计费：10点/分钟' }}</view>
-      <view v-if="!recording && !audioPath" class="button secondary" @tap="startRecord">开始录音</view>
-      <view v-if="recording" class="button secondary" @tap="stopRecord">结束录音</view>
+      <view v-if="!recording && !audioPath" class="button secondary record-button" @click="startRecord" @tap="startRecord">开始录音</view>
+      <view v-if="recording" class="button secondary record-button stop-button" @click="stopRecord" @tap="stopRecord">结束录音</view>
       <view v-if="audioPath && !recording" class="button ghost" @tap="resetRecord">重新录音</view>
     </view>
 
@@ -120,6 +190,7 @@ function clearTimer() {
 
 <style scoped>
 .recorder {
+  position: relative;
   text-align: center;
   margin-bottom: 28rpx;
   background: linear-gradient(145deg, #1d1d1f, #3a3a3c);
@@ -139,7 +210,23 @@ function clearTimer() {
 }
 
 .recorder .button {
+  position: relative;
+  z-index: 2;
   margin-top: 32rpx;
+  cursor: pointer;
+  user-select: none;
+  pointer-events: auto;
+}
+
+.record-button {
+  max-width: 520rpx;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.stop-button {
+  background: #ff453a;
+  box-shadow: 0 12rpx 28rpx rgba(255, 69, 58, 0.24);
 }
 
 .feature-title {
