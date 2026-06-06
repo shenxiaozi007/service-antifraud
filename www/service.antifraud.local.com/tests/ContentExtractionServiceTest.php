@@ -4,6 +4,7 @@ namespace Tests;
 
 use App\Libraries\Agent\ContentExtractionService;
 use App\Libraries\Agent\LlmClient;
+use App\Libraries\CommonService\CommonServiceClient;
 use App\Modules\Basics\Constant\AnalysisConstant;
 use App\Modules\Basics\Model\FileAsset;
 use Illuminate\Support\Facades\Http;
@@ -27,6 +28,43 @@ class ContentExtractionServiceTest extends TestCase
         $this->assertSame('图片里出现验证码和个人账户', $result['text']);
         $this->assertSame('success', $file->ocr_status);
         $this->assertTrue($file->saved);
+    }
+
+    public function test_image_extraction_uses_common_service_signed_download_url(): void
+    {
+        $file = new InMemoryFileAsset([
+            'id' => 11,
+            'file_type' => AnalysisConstant::TYPE_IMAGE,
+            'storage_file_id' => 'common_file_signed',
+            'file_url' => 'https://r2.example.com/not-public.jpeg',
+        ]);
+        $llm = new FakeExtractionLlmClient([
+            'describeImage' => ['enabled' => true, 'success' => true, 'text' => '签名图片内容'],
+        ]);
+        $service = new ContentExtractionService($llm, new FakeDownloadUrlCommonServiceClient());
+
+        $result = $service->extract($file);
+
+        $this->assertSame('签名图片内容', $result['text']);
+        $this->assertSame('https://signed.example.com/common_file_signed.jpeg', $llm->lastImageUrl);
+    }
+
+    public function test_image_extraction_falls_back_to_original_url_when_signed_url_unavailable(): void
+    {
+        $file = new InMemoryFileAsset([
+            'id' => 12,
+            'file_type' => AnalysisConstant::TYPE_IMAGE,
+            'storage_file_id' => 'common_file_unsigned',
+            'file_url' => 'https://r2.example.com/original.jpeg',
+        ]);
+        $llm = new FakeExtractionLlmClient([
+            'describeImage' => ['enabled' => false],
+        ]);
+        $service = new ContentExtractionService($llm, new FailingDownloadUrlCommonServiceClient());
+
+        $service->extract($file);
+
+        $this->assertSame('https://r2.example.com/original.jpeg', $llm->lastImageUrl);
     }
 
     public function test_audio_extraction_falls_back_to_placeholder_when_llm_unavailable(): void
@@ -131,18 +169,41 @@ class ContentExtractionServiceTest extends TestCase
 
 class FakeExtractionLlmClient extends LlmClient
 {
+    public string $lastImageUrl = '';
+    public string $lastAudioUrl = '';
+
     public function __construct(private array $responses)
     {
     }
 
     public function describeImage(string $imageUrl): array
     {
+        $this->lastImageUrl = $imageUrl;
+
         return $this->responses['describeImage'] ?? ['enabled' => false];
     }
 
     public function transcribeAudio(string $audioUrl): array
     {
+        $this->lastAudioUrl = $audioUrl;
+
         return $this->responses['transcribeAudio'] ?? ['enabled' => false];
+    }
+}
+
+class FakeDownloadUrlCommonServiceClient extends CommonServiceClient
+{
+    public function fileDownloadUrl(string $fileId, int $expires = 600): array
+    {
+        return ['download_url' => 'https://signed.example.com/'.$fileId.'.jpeg'];
+    }
+}
+
+class FailingDownloadUrlCommonServiceClient extends CommonServiceClient
+{
+    public function fileDownloadUrl(string $fileId, int $expires = 600): array
+    {
+        throw new \RuntimeException('download-url unavailable');
     }
 }
 

@@ -54,6 +54,21 @@ class CommonServiceClientTest extends TestCase
         ], $client->lastParams);
         $this->assertSame('', $client->lastToken);
     }
+
+    public function test_common_service_client_queries_file_download_url_with_service_auth(): void
+    {
+        $client = new InMemoryCommonServiceClientForTransactions();
+        $result = $client->fileDownloadUrl('file_123', 900);
+
+        $this->assertSame('https://signed.example.com/file_123', $result['download_url']);
+        $this->assertSame('get', $client->lastMethod);
+        $this->assertSame('file/download-url', $client->lastPath);
+        $this->assertSame([
+            'file_id' => 'file_123',
+            'expires' => 900,
+        ], $client->lastParams);
+        $this->assertSame('', $client->lastToken);
+    }
 }
 
 class InMemoryCommonServiceClientForTransactions extends CommonServiceClient
@@ -69,6 +84,10 @@ class InMemoryCommonServiceClientForTransactions extends CommonServiceClient
         $this->lastPath = $path;
         $this->lastParams = $params;
         $this->lastToken = $token;
+
+        if ($path === 'file/download-url') {
+            return ['download_url' => 'https://signed.example.com/'.$params['file_id']];
+        }
 
         return ['items' => [], 'total' => 0, 'page' => 1, 'page_size' => $params['page_size'] ?? 20];
     }

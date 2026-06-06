@@ -88,6 +88,14 @@ class CommonServiceClient
         return $this->request('post', 'payment/wechat/jsapi-order', array_merge(['project_code' => $this->projectCode()], $params), $token);
     }
 
+    public function fileDownloadUrl(string $fileId, int $expires = 600): array
+    {
+        return $this->request('get', 'file/download-url', [
+            'file_id' => $fileId,
+            'expires' => $expires,
+        ]);
+    }
+
     protected function request(string $method, string $path, array $params = [], string $token = ''): array
     {
         $url = rtrim(config('common_service.base_url'), '/').'/'.ltrim($path, '/');
