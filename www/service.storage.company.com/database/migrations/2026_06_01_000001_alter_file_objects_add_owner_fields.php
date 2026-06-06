@@ -15,6 +15,7 @@ return new class extends Migration
         });
     }
 
+
     public function down(): void
     {
         Schema::table('file_objects', function (Blueprint $table) {
