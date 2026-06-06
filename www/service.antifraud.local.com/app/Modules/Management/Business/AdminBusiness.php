@@ -4,16 +4,23 @@ namespace App\Modules\Management\Business;
 
 use App\Kernel\Base\BaseBusiness;
 use App\Libraries\CommonService\CommonServiceClient;
+use App\Modules\Basics\Constant\AnalysisConstant;
 use App\Modules\Basics\Dao\AnalysisRecordDao;
 use App\Modules\Basics\Dao\FileAssetDao;
 use App\Modules\Basics\Dao\UserDao;
-use App\Modules\Basics\Constant\AnalysisConstant;
 use App\Modules\Service\AnalysisBusiness;
-use Illuminate\Http\Request;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\Rule;
 
 class AdminBusiness extends BaseBusiness
 {
+    /**
+     * @param UserDao $userDao 用户 Dao
+     * @param AnalysisRecordDao $analysisRecordDao 分析记录 Dao
+     * @param FileAssetDao $fileAssetDao 文件 Dao
+     * @param AnalysisBusiness $analysisBusiness 分析业务服务
+     * @param CommonServiceClient $commonServiceClient 公共服务客户端
+     */
     public function __construct(
         protected UserDao $userDao,
         protected AnalysisRecordDao $analysisRecordDao,
@@ -23,9 +30,15 @@ class AdminBusiness extends BaseBusiness
     ) {
     }
 
-    public function users(Request $request): array
+    /**
+     * 管理端用户列表。
+     *
+     * @param array $params 查询参数：keyword、page_size
+     * @return array
+     */
+    public function users(array $params): array
     {
-        $filters = $this->validate($request->all(), [
+        $filters = $this->validate($params, [
             'keyword' => 'nullable|string|max:128',
             'page_size' => 'nullable|integer|min:1|max:100',
         ]);
@@ -42,9 +55,15 @@ class AdminBusiness extends BaseBusiness
         ]);
     }
 
-    public function records(Request $request): array
+    /**
+     * 管理端分析记录列表。
+     *
+     * @param array $params 查询参数：type、risk_level、status、user_id、page_size
+     * @return array
+     */
+    public function records(array $params): array
     {
-        $filters = $this->validate($request->all(), [
+        $filters = $this->validate($params, [
             'type' => ['nullable', Rule::in(AnalysisConstant::types())],
             'risk_level' => ['nullable', Rule::in(AnalysisConstant::riskLevels())],
             'status' => ['nullable', Rule::in(AnalysisConstant::statuses())],
@@ -56,6 +75,12 @@ class AdminBusiness extends BaseBusiness
         return $this->page($page, fn ($record) => $this->analysisBusiness->formatRecord($record));
     }
 
+    /**
+     * 管理端分析记录详情。
+     *
+     * @param int $recordId 分析记录 ID
+     * @return array
+     */
     public function recordDetail(int $recordId): array
     {
         $record = $this->analysisRecordDao->findWithDetail($recordId);
@@ -66,9 +91,15 @@ class AdminBusiness extends BaseBusiness
         return $this->analysisBusiness->formatRecord($record, true);
     }
 
-    public function files(Request $request): array
+    /**
+     * 管理端文件列表。
+     *
+     * @param array $params 查询参数：file_type、user_id、page_size
+     * @return array
+     */
+    public function files(array $params): array
     {
-        $filters = $this->validate($request->all(), [
+        $filters = $this->validate($params, [
             'file_type' => 'nullable|string|max:20',
             'user_id' => 'nullable|integer|min:1',
             'page_size' => 'nullable|integer|min:1|max:100',
@@ -87,9 +118,15 @@ class AdminBusiness extends BaseBusiness
         ]);
     }
 
-    public function pointTransactions(Request $request): array
+    /**
+     * 管理端积分流水。
+     *
+     * @param array $params 查询参数：user_id、page_size
+     * @return array
+     */
+    public function pointTransactions(array $params): array
     {
-        $filters = $this->validate($request->all(), [
+        $filters = $this->validate($params, [
             'user_id' => 'required|integer|min:1',
             'page_size' => 'nullable|integer|min:1|max:100',
         ]);
@@ -103,12 +140,25 @@ class AdminBusiness extends BaseBusiness
         ]);
     }
 
+    /**
+     * 管理端重试失败的分析记录。
+     *
+     * @param int $recordId 分析记录 ID
+     * @return array
+     */
     public function retry(int $recordId): array
     {
         return $this->analysisBusiness->retry($recordId);
     }
 
-    private function page($page, callable $formatter): array
+    /**
+     * 统一分页响应格式，兼容当前前端已有字段。
+     *
+     * @param LengthAwarePaginator $page 分页对象
+     * @param callable $formatter 单行数据格式化回调
+     * @return array
+     */
+    private function page(LengthAwarePaginator $page, callable $formatter): array
     {
         return [
             'items' => collect($page->items())->map($formatter)->values(),

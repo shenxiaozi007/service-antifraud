@@ -149,7 +149,7 @@ class AnalysisBusiness extends BaseBusiness
 
         $costPoints = $this->recordCostPoints($record);
         $record->increment('retry_count');
-        $record = $record->refresh()->load(['riskItems', 'fileAssets', 'user']);
+        $record->load(['riskItems', 'fileAssets', 'user']);
 
         $this->commonServiceClient->freeze($record->user->global_user_id, $costPoints, $this->walletRelatedNo($record), '分析重试冻结点数');
         $record->fill([
@@ -161,7 +161,7 @@ class AnalysisBusiness extends BaseBusiness
 
         dispatch(new AnalyzeRiskJob($record->id));
 
-        return $this->formatRecord($record->refresh()->load(['riskItems', 'fileAssets']), true);
+        return $this->formatRecord($record->load(['riskItems', 'fileAssets']), true);
     }
 
     private function createRecord($user, string $type, int $costPoints, int $imageCount, int $durationSeconds, array $fileIds, string $text): array
@@ -195,7 +195,7 @@ class AnalysisBusiness extends BaseBusiness
         }
 
         dispatch(new AnalyzeRiskJob($record->id));
-        $record = $record->refresh()->load(['riskItems', 'fileAssets']);
+        $record->load(['riskItems', 'fileAssets']);
 
         return [
             'record_id' => $record->id,
