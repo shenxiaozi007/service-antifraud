@@ -20,6 +20,11 @@ class AnalysisRecord extends Model
         'summary',
         'suggestions',
         'status',
+        'error_message',
+        'retry_count',
+        'llm_model',
+        'llm_duration_ms',
+        'llm_raw_output',
         'cost_points',
         'frozen_points',
         'image_count',
@@ -29,6 +34,7 @@ class AnalysisRecord extends Model
 
     protected $casts = [
         'suggestions' => 'array',
+        'llm_raw_output' => 'array',
         'analyzed_at' => 'datetime',
     ];
 

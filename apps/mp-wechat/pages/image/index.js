@@ -53,11 +53,7 @@ Page({
     try {
       const fileIds = [];
       for (const image of this.data.images) {
-        const file = await api.uploadToken({
-          file_type: 'image',
-          mime_type: 'image/jpeg',
-          file_size: image.size || 1
-        });
+        const file = await api.uploadCommonFile(image.path, 'image', 'analysis_image');
         fileIds.push(file.file_id);
       }
 

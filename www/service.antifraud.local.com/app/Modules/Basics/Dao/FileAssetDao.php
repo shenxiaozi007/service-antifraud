@@ -25,6 +25,14 @@ class FileAssetDao extends BaseDao
             ->update(['record_id' => $recordId]);
     }
 
+    public function findByStorageFileId(string $storageFileId, int $userId): ?FileAsset
+    {
+        return $this->query()
+            ->where('storage_file_id', $storageFileId)
+            ->where('user_id', $userId)
+            ->first();
+    }
+
     public function page(array $filters, int $pageSize = 20)
     {
         return $this->query()

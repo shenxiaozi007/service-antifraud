@@ -16,4 +16,14 @@ class AuthController extends BaseController
     {
         return $this->revert($this->business->wechatLogin($this->request->all()));
     }
+
+    public function sendCode()
+    {
+        return $this->revert($this->business->sendCode($this->request->all()));
+    }
+
+    public function codeLogin()
+    {
+        return $this->revert($this->business->codeLogin($this->request->all()));
+    }
 }

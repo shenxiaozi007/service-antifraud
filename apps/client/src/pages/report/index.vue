@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { onLoad, onShareAppMessage } from '@dcloudio/uni-app';
+import { onLoad, onShareAppMessage, onUnload } from '@dcloudio/uni-app';
 import { getReport } from '@/api/client';
-import { durationText, riskClass, riskLabel } from '@/constants/risk';
+import { analysisStatusClass, analysisStatusLabel, durationText, riskClass, riskLabel } from '@/constants/risk';
 import { ensureLogin } from '@/stores/session';
 import type { AnalysisRecord } from '@/types/api';
 import '@/styles/common.scss';
@@ -10,17 +10,65 @@ import '@/styles/common.scss';
 const loading = ref(true);
 const recordId = ref(0);
 const report = ref<AnalysisRecord | null>(null);
+const pollCount = ref(0);
+let pollTimer: ReturnType<typeof setTimeout> | null = null;
 const riskText = computed(() => riskLabel(report.value?.risk_level || 'low'));
 const riskStyle = computed(() => riskClass(report.value?.risk_level || 'low'));
 const audioDuration = computed(() => durationText(report.value?.duration_seconds));
+const statusText = computed(() => analysisStatusLabel(report.value?.status || 'pending'));
+const statusStyle = computed(() => analysisStatusClass(report.value?.status || 'pending'));
+const isFinished = computed(() => report.value?.status === 'success');
+const isFailed = computed(() => report.value?.status === 'failed');
+const isWaiting = computed(() => report.value?.status === 'pending' || report.value?.status === 'processing');
 
 onLoad(async (options) => {
   await ensureLogin();
   recordId.value = Number(options?.record_id || 0);
-  report.value = await getReport(recordId.value);
-  loading.value = false;
+  await loadReport();
 });
 
+onUnload(() => {
+  stopPolling();
+});
+
+// 方法：拉取报告详情，并在异步任务未完成时继续轮询状态
+async function loadReport() {
+  if (!recordId.value) {
+    loading.value = false;
+    return;
+  }
+
+  report.value = await getReport(recordId.value);
+  loading.value = false;
+  schedulePolling();
+}
+
+// 方法：pending/processing 状态自动轮询，避免用户进入报告页后看到空报告
+function schedulePolling() {
+  stopPolling();
+  if (!isWaiting.value || pollCount.value >= 60) {
+    return;
+  }
+
+  pollTimer = setTimeout(async () => {
+    pollCount.value += 1;
+    try {
+      await loadReport();
+    } catch (error) {
+      stopPolling();
+    }
+  }, 2000);
+}
+
+// 方法：页面卸载或状态结束时清理定时器，避免重复请求
+function stopPolling() {
+  if (pollTimer) {
+    clearTimeout(pollTimer);
+    pollTimer = null;
+  }
+}
+
+// 方法：失败/已完成后重新发起同类型分析，沿用原有上传入口
 function again() {
   uni.navigateTo({ url: report.value?.type === 'audio' ? '/pages/audio/index' : '/pages/image/index' });
 }
@@ -36,7 +84,19 @@ onShareAppMessage(() => ({
     <view v-if="loading" class="empty">正在加载报告</view>
 
     <block v-else-if="report">
-      <view class="card section">
+      <view v-if="!isFinished" class="card section status-card">
+        <view class="row">
+          <view class="tag" :class="statusStyle">{{ statusText }}</view>
+          <view class="muted">{{ report.created_at }}</view>
+        </view>
+        <view class="report-title">{{ report.title }}</view>
+        <view class="summary">
+          {{ isFailed ? report.error_message || '分析失败，点数已退回，可重新提交材料。' : '材料已提交，正在生成报告。' }}
+        </view>
+        <view v-if="report.frozen_points" class="meta">冻结点数：{{ report.frozen_points }} 点</view>
+      </view>
+
+      <view v-if="isFinished" class="card section">
         <view class="row">
           <view class="tag" :class="riskStyle">{{ riskText }}</view>
           <view class="muted">{{ report.analyzed_at }}</view>
@@ -45,12 +105,12 @@ onShareAppMessage(() => ({
         <view class="summary">{{ report.summary }}</view>
       </view>
 
-      <view class="card section">
+      <view v-if="isFinished" class="card section">
         <view class="block-title">建议动作</view>
         <view v-for="(item, index) in report.suggestions" :key="item" class="advice">{{ index + 1 }}. {{ item }}</view>
       </view>
 
-      <view class="card section">
+      <view v-if="isFinished" class="card section">
         <view class="block-title">主要风险点</view>
         <view v-if="!report.risk_items?.length" class="muted">暂未发现明显风险点</view>
         <view v-for="item in report.risk_items" :key="`${item.category}-${item.evidence_text}`" class="risk-item">
@@ -65,6 +125,7 @@ onShareAppMessage(() => ({
 
       <view class="card section">
         <view class="block-title">分析信息</view>
+        <view class="meta">状态：{{ statusText }}</view>
         <view class="meta">类型：{{ report.type === 'image' ? '帮您看' : '帮您听' }}</view>
         <view class="meta">消耗：{{ report.cost_points }} 点</view>
         <view v-if="report.image_count" class="meta">图片：{{ report.image_count }} 张</view>
@@ -72,9 +133,9 @@ onShareAppMessage(() => ({
         <view class="disclaimer">{{ report.disclaimer }}</view>
       </view>
 
-      <view class="row actions">
-        <view class="button ghost" @tap="again">再分析一次</view>
-        <button class="share" open-type="share">分享给家人</button>
+      <view v-if="!isWaiting" class="row actions">
+        <view class="button ghost" @tap="again">{{ isFailed ? '重新提交' : '再分析一次' }}</view>
+        <button v-if="isFinished" class="share" open-type="share">分享给家人</button>
       </view>
     </block>
   </view>
@@ -92,6 +153,10 @@ onShareAppMessage(() => ({
   margin-top: 18rpx;
   color: #424245;
   line-height: 1.6;
+}
+
+.status-card .meta {
+  margin-top: 18rpx;
 }
 
 .block-title {

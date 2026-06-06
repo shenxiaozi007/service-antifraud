@@ -16,4 +16,9 @@ class FileController extends BaseController
     {
         return $this->revert($this->business->uploadToken($this->request));
     }
+
+    public function register()
+    {
+        return $this->revert($this->business->register($this->request));
+    }
 }

@@ -3,12 +3,13 @@
 namespace App\Modules\Service;
 
 use App\Kernel\Base\BaseBusiness;
+use App\Libraries\CommonService\CommonServiceClient;
 use App\Modules\Basics\Dao\UserDao;
 use Illuminate\Http\Request;
 
 class UserBusiness extends BaseBusiness
 {
-    public function __construct(protected UserDao $userDao)
+    public function __construct(protected UserDao $userDao, protected CommonServiceClient $commonServiceClient)
     {
     }
 
@@ -19,9 +20,25 @@ class UserBusiness extends BaseBusiness
             $this->fail(401, '请先登录');
         }
 
-        $user = $this->userDao->findByToken($token);
-        if (!$user) {
+        $introspection = $this->commonServiceClient->introspect($token);
+        if (!($introspection['active'] ?? false)) {
             $this->fail(401, '登录已失效');
+        }
+
+        $globalUser = $introspection['user'];
+        $user = $this->userDao->findByGlobalUserId((int) $globalUser['id']);
+        if (!$user) {
+            $user = $this->userDao->create([
+                'global_user_id' => (int) $globalUser['id'],
+                'project_code' => config('common_service.project_code', 'antifraud'),
+                'openid' => 'global_'.$globalUser['id'],
+                'nickname' => $globalUser['nickname'] ?? '',
+                'avatar_url' => $globalUser['avatar_url'] ?? '',
+                'points_balance' => 0,
+                'status' => (int) ($globalUser['status'] ?? 1),
+                'api_token' => $token,
+                'last_login_at' => now(),
+            ]);
         }
 
         return $user;
@@ -30,12 +47,15 @@ class UserBusiness extends BaseBusiness
     public function me(Request $request): array
     {
         $user = $this->currentUser($request);
+        $wallet = $this->commonServiceClient->balance($this->bearerToken($request));
 
         return [
             'id' => $user->id,
+            'global_user_id' => $user->global_user_id,
             'nickname' => $user->nickname,
             'avatar_url' => $user->avatar_url,
-            'points_balance' => $user->points_balance,
+            'points_balance' => $wallet['balance'] ?? 0,
+            'frozen_points' => $wallet['frozen_balance'] ?? 0,
         ];
     }
 }

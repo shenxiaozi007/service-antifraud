@@ -17,7 +17,10 @@ class RouteServiceProvider extends ServiceProvider
                     'namespace' => 'App\Http\Controllers\Service\Api\V1',
                     'middleware' => ['cors'],
                     'files' => [
+                        'routes/service/api/v1/auth/auth.php',
                         'routes/service/api/v1/file/file.php',
+                        'routes/service/api/v1/wallet/wallet.php',
+                        'routes/service/api/v1/payment/payment.php',
                     ],
                 ],
             ],

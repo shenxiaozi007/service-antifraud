@@ -11,6 +11,10 @@
   line-height: 1.6;
 }
 
+.status-card .meta {
+  margin-top: 18rpx;
+}
+
 .block-title {
   font-size: 34rpx;
   font-weight: 700;

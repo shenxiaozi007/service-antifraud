@@ -1,10 +1,17 @@
 import { request } from './request';
+import { FILE_BASE_URL } from './config';
 import type {
   AnalysisRecord,
+  AnalysisType,
+  ApiResponse,
+  CommonFileUploadResponse,
   CreateAnalysisResponse,
   LoginResponse,
   PageResult,
+  PaymentOrderResponse,
+  PaymentPackage,
   PointTransaction,
+  RegisterFileResponse,
   UploadTokenResponse,
   UserInfo
 } from '@/types/api';
@@ -22,12 +29,95 @@ export function wechatLogin(data: Record<string, unknown>) {
   return request<LoginResponse>({ url: '/api/v1/auth/wechat-login', method: 'POST', data });
 }
 
+export function sendCode(data: Record<string, unknown>) {
+  return request<{ expire_seconds: number; debug_code?: string }>({ url: '/api/v1/auth/send-code', method: 'POST', data });
+}
+
+export function codeLogin(data: Record<string, unknown>) {
+  return request<LoginResponse>({ url: '/api/v1/auth/code-login', method: 'POST', data });
+}
+
 export function me() {
   return request<UserInfo>({ url: '/api/v1/me' });
 }
 
 export function uploadToken(data: Record<string, unknown>) {
   return request<UploadTokenResponse>({ url: '/api/v1/files/upload-token', method: 'POST', data });
+}
+
+export function registerFile(data: Record<string, unknown>) {
+  return request<RegisterFileResponse>({ url: '/api/v1/files/register', method: 'POST', data });
+}
+
+async function uploadCommonFileByFetch(filePath: string, bizType: string): Promise<CommonFileUploadResponse> {
+  const fileResponse = await fetch(filePath);
+  const blob = await fileResponse.blob();
+  const formData = new FormData();
+  const extension = blob.type.split('/')[1] || 'bin';
+
+  formData.append('file', blob, `antifraud-${Date.now()}.${extension}`);
+  formData.append('owner_project', 'antifraud');
+  formData.append('biz_type', bizType);
+  formData.append('disk', 'cloudflare_r2');
+
+  const response = await fetch(`${FILE_BASE_URL}/service/api/v1/file/upload`, {
+    method: 'POST',
+    body: formData
+  });
+  const body = (await response.json()) as ApiResponse<CommonFileUploadResponse>;
+
+  if (response.ok && body?.code === 0) {
+    return body.data;
+  }
+
+  throw new Error(body?.message || `上传失败 ${response.status}`);
+}
+
+export function uploadCommonFile(filePath: string, fileType: AnalysisType, bizType: string) {
+  return new Promise<CommonFileUploadResponse>((resolve, reject) => {
+    if (typeof window !== 'undefined' && typeof FormData !== 'undefined') {
+      uploadCommonFileByFetch(filePath, bizType).then(resolve).catch((error) => {
+        uni.showToast({ title: error?.message || '文件上传失败', icon: 'none' });
+        reject(error);
+      });
+      return;
+    }
+
+    uni.uploadFile({
+      url: `${FILE_BASE_URL}/service/api/v1/file/upload`,
+      filePath,
+      name: 'file',
+      formData: {
+        owner_project: 'antifraud',
+        biz_type: bizType,
+        disk: 'cloudflare_r2'
+      },
+      success(response) {
+        const body = JSON.parse(String(response.data || '{}'));
+        if (response.statusCode >= 200 && response.statusCode < 300 && body?.code === 0) {
+          resolve(body.data as CommonFileUploadResponse);
+          return;
+        }
+
+        const message = body?.message || `上传失败 ${response.statusCode}`;
+        uni.showToast({ title: message, icon: 'none' });
+        reject(new Error(message));
+      },
+      fail(error) {
+        uni.showToast({ title: '文件上传失败', icon: 'none' });
+        reject(error);
+      }
+    });
+  }).then((file) =>
+    registerFile({
+      storage_file_id: file.file_id,
+      file_type: fileType,
+      object_key: file.object_key,
+      file_url: file.file_url,
+      mime_type: file.mime_type,
+      file_size: file.size
+    })
+  );
 }
 
 export function createImageAnalysis(data: Record<string, unknown>) {
@@ -51,9 +141,13 @@ export function getTransactions() {
 }
 
 export function createPaymentOrder(data: Record<string, unknown>) {
-  return request<{ payment_params: Record<string, unknown>; status: string; message: string }>({
+  return request<PaymentOrderResponse>({
     url: '/api/v1/payments/wechat/order',
     method: 'POST',
     data
   });
+}
+
+export function getPaymentPackages() {
+  return request<PaymentPackage[]>({ url: '/api/v1/payments/packages' });
 }

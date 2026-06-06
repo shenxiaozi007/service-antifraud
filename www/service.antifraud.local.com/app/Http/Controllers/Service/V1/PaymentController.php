@@ -3,20 +3,32 @@
 namespace App\Http\Controllers\Service\V1;
 
 use App\Kernel\Base\BaseController;
+use App\Libraries\CommonService\CommonServiceClient;
 use Illuminate\Http\Request;
 
 class PaymentController extends BaseController
 {
-    public function __construct(protected Request $request)
+    public function __construct(protected Request $request, protected CommonServiceClient $commonServiceClient)
     {
+    }
+
+    public function packages()
+    {
+        return $this->revert($this->commonServiceClient->paymentPackages($this->request->all()));
     }
 
     public function wechatOrder()
     {
-        return $this->revert([
-            'payment_params' => [],
-            'status' => 'mock',
-            'message' => 'MVP 暂未接入微信支付，后台确认后可补真实下单参数。',
-        ]);
+        return $this->revert($this->commonServiceClient->wechatOrder($this->bearerToken(), $this->request->all()));
+    }
+
+    protected function bearerToken(): string
+    {
+        $header = (string) $this->request->header('Authorization', '');
+        if (str_starts_with($header, 'Bearer ')) {
+            return trim(substr($header, 7));
+        }
+
+        return (string) $this->request->input('token', '');
     }
 }

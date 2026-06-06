@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
-import { createAudioAnalysis, uploadToken } from '@/api/client';
+import { createAudioAnalysis, uploadCommonFile } from '@/api/client';
 import { durationText } from '@/constants/risk';
 import { ensureLogin } from '@/stores/session';
 import '@/styles/common.scss';
@@ -65,14 +65,12 @@ async function submit() {
   uni.showLoading({ title: '分析中' });
 
   try {
-    const file = await uploadToken({
-      file_type: 'audio',
-      mime_type: 'audio/mpeg',
-      file_size: 1
-    });
+    const file = audioPath.value
+      ? await uploadCommonFile(audioPath.value, 'audio', 'analysis_audio')
+      : null;
 
     const result = await createAudioAnalysis({
-      file_id: file.file_id,
+      file_id: file?.file_id || 0,
       duration_seconds: Math.max(duration.value, 1),
       text: text.value || '不要告诉家人，把验证码发给我'
     });

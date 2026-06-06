@@ -1,5 +1,5 @@
-import { clearToken, getToken, setToken } from '@/api/request';
-import { me, wechatLogin } from '@/api/client';
+import { clearToken, getToken } from '@/api/request';
+import { me } from '@/api/client';
 import type { UserInfo } from '@/types/api';
 
 export const session = {
@@ -15,27 +15,17 @@ export async function ensureLogin(): Promise<UserInfo> {
     return session.user;
   }
 
-  if (getToken()) {
-    try {
-      session.user = await me();
-      return session.user;
-    } catch (error) {
-      clearToken();
-    }
+  if (!getToken()) {
+    throw new Error('请先登录');
   }
 
-  const openid = storage('dev_openid') || `dev_${Date.now()}`;
-  uni.setStorageSync('dev_openid', openid);
-
-  const result = await wechatLogin({
-    code: String(Date.now()),
-    openid,
-    nickname: '微信用户'
-  });
-
-  setToken(result.token);
-  session.user = result.user;
-  return result.user;
+  try {
+    session.user = await me();
+    return session.user;
+  } catch (error) {
+    clearToken();
+    throw error;
+  }
 }
 
 export function resetSession(): void {

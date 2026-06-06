@@ -11,7 +11,11 @@ class User extends Model
 
     protected $fillable = [
         'openid',
+        'global_user_id',
+        'project_code',
         'unionid',
+        'email',
+        'mobile',
         'nickname',
         'avatar_url',
         'points_balance',

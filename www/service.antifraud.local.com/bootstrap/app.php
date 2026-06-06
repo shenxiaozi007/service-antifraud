@@ -61,7 +61,10 @@ $app->singleton(
 
 $app->configure('app');
 $app->configure('cors');
+$app->configure('common_service');
 $app->configure('database');
+$app->configure('llm');
+$app->configure('queue');
 
 /*
 |--------------------------------------------------------------------------

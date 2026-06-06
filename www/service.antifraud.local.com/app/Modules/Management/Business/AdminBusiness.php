@@ -3,12 +3,14 @@
 namespace App\Modules\Management\Business;
 
 use App\Kernel\Base\BaseBusiness;
+use App\Libraries\CommonService\CommonServiceClient;
 use App\Modules\Basics\Dao\AnalysisRecordDao;
 use App\Modules\Basics\Dao\FileAssetDao;
-use App\Modules\Basics\Dao\PointTransactionDao;
 use App\Modules\Basics\Dao\UserDao;
+use App\Modules\Basics\Constant\AnalysisConstant;
 use App\Modules\Service\AnalysisBusiness;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AdminBusiness extends BaseBusiness
 {
@@ -16,8 +18,8 @@ class AdminBusiness extends BaseBusiness
         protected UserDao $userDao,
         protected AnalysisRecordDao $analysisRecordDao,
         protected FileAssetDao $fileAssetDao,
-        protected PointTransactionDao $pointTransactionDao,
-        protected AnalysisBusiness $analysisBusiness
+        protected AnalysisBusiness $analysisBusiness,
+        protected CommonServiceClient $commonServiceClient
     ) {
     }
 
@@ -43,9 +45,9 @@ class AdminBusiness extends BaseBusiness
     public function records(Request $request): array
     {
         $filters = $this->validate($request->all(), [
-            'type' => 'nullable|string|max:20',
-            'risk_level' => 'nullable|string|max:20',
-            'status' => 'nullable|string|max:20',
+            'type' => ['nullable', Rule::in(AnalysisConstant::types())],
+            'risk_level' => ['nullable', Rule::in(AnalysisConstant::riskLevels())],
+            'status' => ['nullable', Rule::in(AnalysisConstant::statuses())],
             'user_id' => 'nullable|integer|min:1',
             'page_size' => 'nullable|integer|min:1|max:100',
         ]);
@@ -88,22 +90,16 @@ class AdminBusiness extends BaseBusiness
     public function pointTransactions(Request $request): array
     {
         $filters = $this->validate($request->all(), [
-            'user_id' => 'nullable|integer|min:1',
-            'type' => 'nullable|string|max:30',
+            'user_id' => 'required|integer|min:1',
             'page_size' => 'nullable|integer|min:1|max:100',
         ]);
-        $page = $this->pointTransactionDao->adminPage($filters, (int) ($filters['page_size'] ?? 20));
+        $user = $this->userDao->find((int) $filters['user_id']);
+        if (!$user || (int) $user->global_user_id <= 0) {
+            $this->fail(404, '用户不存在或未绑定公共用户');
+        }
 
-        return $this->page($page, fn ($item) => [
-            'id' => $item->id,
-            'user_id' => $item->user_id,
-            'related_record_id' => $item->related_record_id,
-            'amount' => $item->amount,
-            'balance_after' => $item->balance_after,
-            'type' => $item->type,
-            'status' => $item->status,
-            'remark' => $item->remark,
-            'created_at' => $this->datetimeString($item->created_at),
+        return $this->commonServiceClient->transactionsByUser((int) $user->global_user_id, [
+            'page_size' => (int) ($filters['page_size'] ?? 20),
         ]);
     }
 

@@ -35,7 +35,7 @@ abstract class BaseDao
 
     public function store(array $params, array $extra = []): Model
     {
-        $model = $this->getModel();
+        $model = $this->getModel()->newInstance();
         $model->fill($params);
         $model->forceFill($extra);
         $model->save();

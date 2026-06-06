@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
-import { createImageAnalysis, uploadToken } from '@/api/client';
+import { createImageAnalysis, uploadCommonFile } from '@/api/client';
 import { ensureLogin } from '@/stores/session';
 import '@/styles/common.scss';
 
@@ -47,11 +47,7 @@ async function submit() {
   try {
     const fileIds: number[] = [];
     for (const image of images.value) {
-      const file = await uploadToken({
-        file_type: 'image',
-        mime_type: 'image/jpeg',
-        file_size: image.size || 1
-      });
+      const file = await uploadCommonFile(image.path, 'image', 'analysis_image');
       fileIds.push(file.file_id);
     }
 

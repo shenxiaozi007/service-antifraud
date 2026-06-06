@@ -3,11 +3,13 @@
 namespace App\Modules\Service;
 
 use App\Kernel\Base\BaseBusiness;
+use App\Libraries\Agent\ContentExtractionService;
+use App\Libraries\CommonService\CommonServiceClient;
+use App\Jobs\Analysis\AnalyzeRiskJob;
 use App\Modules\Basics\Constant\AnalysisConstant;
 use App\Modules\Basics\Constant\PointConstant;
 use App\Modules\Basics\Dao\AnalysisRecordDao;
 use App\Modules\Basics\Dao\FileAssetDao;
-use App\Modules\Basics\Dao\PointTransactionDao;
 use App\Modules\Basics\Dao\RiskItemDao;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -21,8 +23,9 @@ class AnalysisBusiness extends BaseBusiness
         protected AnalysisRecordDao $analysisRecordDao,
         protected FileAssetDao $fileAssetDao,
         protected RiskItemDao $riskItemDao,
-        protected PointTransactionDao $pointTransactionDao,
-        protected RiskAnalysisBusiness $riskAnalysisBusiness
+        protected RiskAnalysisBusiness $riskAnalysisBusiness,
+        protected CommonServiceClient $commonServiceClient,
+        protected ContentExtractionService $contentExtractionService
     ) {
     }
 
@@ -52,7 +55,7 @@ class AnalysisBusiness extends BaseBusiness
             count($data['file_ids']),
             0,
             $data['file_ids'],
-            $data['text'] ?? $this->combineFileText($files, 'ocr_text')
+            $data['text'] ?? ''
         );
     }
 
@@ -60,17 +63,21 @@ class AnalysisBusiness extends BaseBusiness
     {
         $user = $this->userBusiness->currentUser($request);
         $data = $this->validate($request->all(), [
-            'file_id' => 'required|integer|min:1',
+            'file_id' => 'nullable|integer|min:1',
             'duration_seconds' => 'required|integer|min:1|max:7200',
-            'text' => 'nullable|string|max:50000',
+            'text' => 'required_without:file_id|nullable|string|max:50000',
         ]);
 
-        $file = $this->fileAssetDao->findUserFile((int) $data['file_id'], $user->id);
-        if (!$file) {
-            $this->fail(422, '文件不存在或无权访问');
-        }
-        if ($file->file_type !== AnalysisConstant::TYPE_AUDIO) {
-            $this->fail(422, '只能提交录音文件');
+        $fileIds = [];
+        if (!empty($data['file_id'])) {
+            $file = $this->fileAssetDao->findUserFile((int) $data['file_id'], $user->id);
+            if (!$file) {
+                $this->fail(422, '文件不存在或无权访问');
+            }
+            if ($file->file_type !== AnalysisConstant::TYPE_AUDIO) {
+                $this->fail(422, '只能提交录音文件');
+            }
+            $fileIds[] = (int) $data['file_id'];
         }
 
         $costPoints = (int) ceil($data['duration_seconds'] / 60) * PointConstant::AUDIO_ANALYSIS_POINTS_PER_MINUTE;
@@ -81,8 +88,8 @@ class AnalysisBusiness extends BaseBusiness
             $costPoints,
             0,
             (int) $data['duration_seconds'],
-            [$data['file_id']],
-            $data['text'] ?? ($file->transcript_text ?: '')
+            $fileIds,
+            $data['text'] ?? ''
         );
     }
 
@@ -103,6 +110,7 @@ class AnalysisBusiness extends BaseBusiness
         $filters = $this->validate($request->all(), [
             'type' => ['nullable', Rule::in(AnalysisConstant::types())],
             'risk_level' => ['nullable', Rule::in(AnalysisConstant::riskLevels())],
+            'status' => ['nullable', Rule::in(AnalysisConstant::statuses())],
             'page_size' => 'nullable|integer|min:1|max:100',
         ]);
 
@@ -139,74 +147,145 @@ class AnalysisBusiness extends BaseBusiness
             $this->fail(422, '只有失败记录可以重试');
         }
 
-        $text = $this->combineFileText($record->fileAssets, $record->type === AnalysisConstant::TYPE_IMAGE ? 'ocr_text' : 'transcript_text');
-        $result = $this->riskAnalysisBusiness->analyze($text);
+        $costPoints = $this->recordCostPoints($record);
+        $record->increment('retry_count');
+        $record = $record->refresh()->load(['riskItems', 'fileAssets', 'user']);
 
-        DB::transaction(function () use ($record, $result) {
-            $record->fill([
-                'title' => $result['title'],
-                'risk_level' => $result['risk_level'],
-                'risk_score' => $result['risk_score'],
-                'summary' => $result['summary'],
-                'suggestions' => $result['suggestions'],
-                'status' => AnalysisConstant::STATUS_COMPLETED,
-                'analyzed_at' => Carbon::now(),
-            ])->save();
+        $this->commonServiceClient->freeze($record->user->global_user_id, $costPoints, $this->walletRelatedNo($record), '分析重试冻结点数');
+        $record->fill([
+            'status' => AnalysisConstant::STATUS_PENDING,
+            'error_message' => null,
+            'frozen_points' => $costPoints,
+            'cost_points' => 0,
+        ])->save();
 
-            $this->riskItemDao->replaceForRecord($record->id, $result['risk_items']);
-        });
+        dispatch(new AnalyzeRiskJob($record->id));
 
         return $this->formatRecord($record->refresh()->load(['riskItems', 'fileAssets']), true);
     }
 
     private function createRecord($user, string $type, int $costPoints, int $imageCount, int $durationSeconds, array $fileIds, string $text): array
     {
-        if ($user->points_balance < $costPoints) {
-            $this->fail(422, '点数余额不足');
-        }
-
-        return DB::transaction(function () use ($user, $type, $costPoints, $imageCount, $durationSeconds, $fileIds, $text) {
-            $result = $this->riskAnalysisBusiness->analyze($text);
-
-            $user->points_balance -= $costPoints;
-            $user->save();
-
+        $record = DB::transaction(function () use ($user, $type, $costPoints, $imageCount, $durationSeconds, $fileIds, $text) {
             $record = $this->analysisRecordDao->create([
                 'user_id' => $user->id,
                 'type' => $type,
+                'title' => $type === AnalysisConstant::TYPE_IMAGE ? '图片风险分析中' : '录音风险分析中',
+                'risk_level' => AnalysisConstant::RISK_LOW,
+                'risk_score' => 0,
+                'summary' => $text,
+                'suggestions' => [],
+                'status' => AnalysisConstant::STATUS_PENDING,
+                'cost_points' => 0,
+                'frozen_points' => $costPoints,
+                'image_count' => $imageCount,
+                'duration_seconds' => $durationSeconds,
+            ]);
+
+            $this->fileAssetDao->bindRecord($fileIds, $record->id, $user->id);
+
+            return $record;
+        });
+
+        try {
+            $this->commonServiceClient->freeze($user->global_user_id, $costPoints, $this->walletRelatedNo($record), $type === AnalysisConstant::TYPE_IMAGE ? '图片分析冻结点数' : '录音分析冻结点数');
+        } catch (\Throwable $e) {
+            $record->delete();
+            throw $e;
+        }
+
+        dispatch(new AnalyzeRiskJob($record->id));
+        $record = $record->refresh()->load(['riskItems', 'fileAssets']);
+
+        return [
+            'record_id' => $record->id,
+            'status' => $record->status,
+            'frozen_points' => $record->frozen_points,
+            'cost_points' => $costPoints,
+            'report' => $this->formatRecord($record, true),
+        ];
+    }
+
+    public function processRecord(int $recordId): void
+    {
+        $record = $this->analysisRecordDao->findWithDetail($recordId);
+        if (!$record) {
+            return;
+        }
+
+        $record->fill(['status' => AnalysisConstant::STATUS_PROCESSING, 'error_message' => null])->save();
+
+        try {
+            $textParts = [];
+            if ($record->summary) {
+                $textParts[] = $record->summary;
+            }
+            foreach ($record->fileAssets as $file) {
+                $textParts[] = $this->contentExtractionService->extract($file)['text'];
+            }
+            $text = trim(implode("\n", array_filter($textParts)));
+            $result = $this->riskAnalysisBusiness->analyze($text);
+            $costPoints = (int) $record->frozen_points;
+            $relatedNo = $this->walletRelatedNo($record);
+
+            $this->fillSuccessRecord($record, $result, $costPoints);
+            $this->commonServiceClient->confirm($record->user->global_user_id, $costPoints, $relatedNo, '分析成功扣点');
+        } catch (\Throwable $e) {
+            $this->releaseFrozenPoints($record, $costPoints ?? (int) $record->frozen_points, '分析失败退回点数');
+            $this->markRecordFailed($record, $e);
+        }
+    }
+
+    private function fillSuccessRecord($record, array $result, int $costPoints): void
+    {
+        DB::transaction(function () use ($record, $result, $costPoints) {
+            $record->fill([
                 'title' => $result['title'],
                 'risk_level' => $result['risk_level'],
                 'risk_score' => $result['risk_score'],
                 'summary' => $result['summary'],
                 'suggestions' => $result['suggestions'],
-                'status' => AnalysisConstant::STATUS_COMPLETED,
+                'status' => AnalysisConstant::STATUS_SUCCESS,
                 'cost_points' => $costPoints,
                 'frozen_points' => 0,
-                'image_count' => $imageCount,
-                'duration_seconds' => $durationSeconds,
+                'llm_model' => $result['llm_model'] ?? '',
+                'llm_duration_ms' => $result['llm_duration_ms'] ?? 0,
+                'llm_raw_output' => $result['llm_raw_output'] ?? null,
                 'analyzed_at' => Carbon::now(),
-            ]);
+            ])->save();
 
-            $this->fileAssetDao->bindRecord($fileIds, $record->id, $user->id);
             $this->riskItemDao->replaceForRecord($record->id, $result['risk_items']);
-            $this->pointTransactionDao->create([
-                'user_id' => $user->id,
-                'related_record_id' => $record->id,
-                'amount' => -$costPoints,
-                'balance_after' => $user->points_balance,
-                'type' => PointConstant::TYPE_ANALYSIS_COST,
-                'status' => 'completed',
-                'remark' => $type === AnalysisConstant::TYPE_IMAGE ? '图片分析扣点' : '录音分析扣点',
-            ]);
-
-            return [
-                'record_id' => $record->id,
-                'status' => $record->status,
-                'frozen_points' => 0,
-                'cost_points' => $costPoints,
-                'report' => $this->formatRecord($record->load(['riskItems', 'fileAssets']), true),
-            ];
         });
+    }
+
+    private function markRecordFailed($record, \Throwable $e): void
+    {
+        $record->fill([
+            'status' => AnalysisConstant::STATUS_FAILED,
+            'error_message' => $e->getMessage(),
+            'frozen_points' => 0,
+        ])->save();
+    }
+
+    private function releaseFrozenPoints($record, int $frozenPoints, string $remark): void
+    {
+        if ($frozenPoints > 0) {
+            $this->commonServiceClient->release($record->user->global_user_id, $frozenPoints, $this->walletRelatedNo($record), $remark);
+        }
+    }
+
+    private function recordCostPoints($record): int
+    {
+        if ($record->type === AnalysisConstant::TYPE_AUDIO) {
+            return max(1, (int) ceil(max(1, (int) $record->duration_seconds) / 60)) * PointConstant::AUDIO_ANALYSIS_POINTS_PER_MINUTE;
+        }
+
+        return PointConstant::IMAGE_ANALYSIS_POINTS;
+    }
+
+    private function walletRelatedNo($record): string
+    {
+        return sprintf('analysis:%d:%d', $record->id, (int) $record->retry_count);
     }
 
     private function combineFileText($files, string $field): string
@@ -227,7 +306,9 @@ class AnalysisBusiness extends BaseBusiness
             'summary' => $record->summary,
             'suggestions' => $record->suggestions ?: [],
             'status' => $record->status,
+            'error_message' => $record->error_message,
             'cost_points' => $record->cost_points,
+            'frozen_points' => $record->frozen_points,
             'image_count' => $record->image_count,
             'duration_seconds' => $record->duration_seconds,
             'analyzed_at' => $this->datetimeString($record->analyzed_at),

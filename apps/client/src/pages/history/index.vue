@@ -2,9 +2,9 @@
 import { ref } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import { getRecords } from '@/api/client';
-import { riskClass, riskLabel } from '@/constants/risk';
+import { analysisStatusClass, analysisStatusLabel, riskClass, riskLabel } from '@/constants/risk';
 import { ensureLogin } from '@/stores/session';
-import type { AnalysisRecord, AnalysisType, RiskLevel } from '@/types/api';
+import type { AnalysisRecord, AnalysisStatus, AnalysisType, RiskLevel } from '@/types/api';
 import '@/styles/common.scss';
 
 const records = ref<AnalysisRecord[]>([]);
@@ -16,6 +16,7 @@ onShow(async () => {
   await loadRecords();
 });
 
+// 方法：按当前筛选条件拉取历史列表，列表状态跟随异步分析任务实时展示
 async function loadRecords() {
   const result = await getRecords({
     risk_level: filter.value,
@@ -25,18 +26,46 @@ async function loadRecords() {
   records.value = result.items;
 }
 
+// 方法：切换风险筛选，成功记录才展示风险等级，其他状态展示任务状态
 function changeFilter(next: RiskLevel | '') {
   filter.value = next;
   void loadRecords();
 }
 
+// 方法：切换图片/录音类型筛选，再次点击同类型时取消筛选
 function changeType(next: AnalysisType) {
   type.value = type.value === next ? '' : next;
   void loadRecords();
 }
 
+// 方法：进入报告页查看异步任务详情或最终分析报告
 function goReport(recordId: number) {
   uni.navigateTo({ url: `/pages/report/index?record_id=${recordId}` });
+}
+
+// 方法：根据任务状态决定列表标签，避免处理中记录被误展示为低风险
+function recordTag(item: AnalysisRecord) {
+  if (item.status === 'success') {
+    return {
+      text: riskLabel(item.risk_level),
+      className: riskClass(item.risk_level)
+    };
+  }
+
+  return {
+    text: analysisStatusLabel(item.status),
+    className: analysisStatusClass(item.status)
+  };
+}
+
+// 方法：展示已扣点或冻结点数，让用户能区分完成消费和处理中冻结
+function pointText(item: AnalysisRecord) {
+  const status = item.status as AnalysisStatus;
+  if ((status === 'pending' || status === 'processing') && item.frozen_points) {
+    return `冻结${item.frozen_points}点`;
+  }
+
+  return `${item.cost_points}点`;
 }
 </script>
 
@@ -59,9 +88,9 @@ function goReport(recordId: number) {
       <view v-for="item in records" :key="item.id" class="list-item" @tap="goReport(item.id)">
         <view class="row">
           <view class="record-title">{{ item.title }}</view>
-          <view class="tag" :class="riskClass(item.risk_level)">{{ riskLabel(item.risk_level) }}</view>
+          <view class="tag" :class="recordTag(item).className">{{ recordTag(item).text }}</view>
         </view>
-        <view class="muted">{{ item.type === 'image' ? '帮您看' : '帮您听' }} · {{ item.created_at }} · {{ item.cost_points }}点</view>
+        <view class="muted">{{ item.type === 'image' ? '帮您看' : '帮您听' }} · {{ item.created_at }} · {{ pointText(item) }}</view>
       </view>
     </view>
   </view>

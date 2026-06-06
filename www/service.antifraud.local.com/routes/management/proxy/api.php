@@ -10,4 +10,5 @@ $router->get('point-transactions', 'AdminController@pointTransactions');
 $router->get('risk-rules', 'RiskRuleController@list');
 $router->post('risk-rules', 'RiskRuleController@store');
 $router->put('risk-rules/{ruleId}', 'RiskRuleController@update');
+$router->post('analysis/{recordId}/retry', 'AdminController@retry');
 $router->post('analysis-records/{recordId}/retry', 'AdminController@retry');

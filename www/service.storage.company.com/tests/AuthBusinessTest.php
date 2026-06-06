@@ -1,0 +1,171 @@
+<?php
+
+namespace Tests;
+
+use App\Modules\Service\Business\Auth\AuthBusiness;
+use App\Modules\Basics\Model\Auth\VerificationCode;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\ValidationException;
+
+class AuthBusinessTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $database = '/private/tmp/storage_auth_business_test.sqlite';
+        @unlink($database);
+        touch($database);
+
+        config([
+            'database.default' => 'sqlite',
+            'database.connections.sqlite.database' => $database,
+            'app.env' => 'testing',
+            'verification.webhook_url' => '',
+            'verification.webhook_token' => '',
+        ]);
+
+        Artisan::call('migrate:fresh', ['--force' => true]);
+    }
+
+    public function test_code_login_creates_user_identity_token_and_introspects_token(): void
+    {
+        $business = app(AuthBusiness::class);
+        $account = 'mvp-test@example.com';
+
+        $sent = $business->sendCode(['account' => $account, 'scene' => 'login']);
+        $login = $business->codeLogin([
+            'account' => $account,
+            'code' => $sent['debug_code'],
+            'scene' => 'login',
+        ]);
+
+        $this->assertNotEmpty($login['token']);
+        $this->assertTrue($login['is_new_user']);
+        $this->assertSame('用户'.substr(md5($account), 0, 6), $login['user']['nickname']);
+
+        $introspected = $business->introspect($login['token']);
+        $this->assertTrue($introspected['active']);
+        $this->assertSame($login['user']['id'], $introspected['user']['id']);
+    }
+
+    public function test_wechat_login_reuses_openid_identity(): void
+    {
+        $business = app(AuthBusiness::class);
+
+        $first = $business->wechatLogin([
+            'openid' => 'openid-mvp-test',
+            'unionid' => 'unionid-mvp-test',
+            'nickname' => '微信测试用户',
+        ]);
+        $second = $business->wechatLogin([
+            'openid' => 'openid-mvp-test',
+            'unionid' => 'unionid-mvp-test',
+            'nickname' => '微信测试用户',
+        ]);
+
+        $this->assertTrue($first['is_new_user']);
+        $this->assertFalse($second['is_new_user']);
+        $this->assertSame($first['user']['id'], $second['user']['id']);
+    }
+
+    public function test_wechat_login_mock_requires_explicit_mock_switch(): void
+    {
+        config([
+            'wechat.mini_program.mock' => true,
+            'wechat.mini_program.app_id' => '',
+            'wechat.mini_program.app_secret' => '',
+        ]);
+
+        $login = app(AuthBusiness::class)->wechatLogin([
+            'code' => 'dev-code',
+            'nickname' => '本地微信用户',
+        ]);
+
+        $this->assertNotEmpty($login['token']);
+        $this->assertTrue($login['is_new_user']);
+    }
+
+    public function test_wechat_login_requires_real_config_when_mock_is_disabled(): void
+    {
+        config([
+            'wechat.mini_program.mock' => false,
+            'wechat.mini_program.app_id' => '',
+            'wechat.mini_program.app_secret' => '',
+        ]);
+
+        $this->expectException(ValidationException::class);
+
+        app(AuthBusiness::class)->wechatLogin([
+            'code' => 'real-code',
+        ]);
+    }
+
+    public function test_production_wechat_login_rejects_direct_openid_when_mock_is_disabled(): void
+    {
+        config([
+            'app.env' => 'production',
+            'wechat.mini_program.mock' => false,
+        ]);
+
+        $this->expectException(ValidationException::class);
+
+        app(AuthBusiness::class)->wechatLogin([
+            'openid' => 'forged-openid',
+        ]);
+    }
+
+    public function test_send_code_dispatches_configured_webhook(): void
+    {
+        Http::fake([
+            'https://notify.example.com/code' => Http::response(['success' => true]),
+        ]);
+        config([
+            'verification.webhook_url' => 'https://notify.example.com/code',
+            'verification.webhook_token' => 'secret-token',
+        ]);
+
+        $sent = app(AuthBusiness::class)->sendCode(['account' => 'notify@example.com', 'scene' => 'login']);
+
+        $this->assertNotEmpty($sent['debug_code']);
+        Http::assertSent(function ($request) use ($sent) {
+            return $request->url() === 'https://notify.example.com/code'
+                && $request->hasHeader('Authorization', 'Bearer secret-token')
+                && $request['account'] === 'notify@example.com'
+                && $request['scene'] === 'login'
+                && $request['code'] === $sent['debug_code']
+                && $request['expire_seconds'] === 300;
+        });
+    }
+
+    public function test_production_send_code_requires_delivery_channel(): void
+    {
+        config([
+            'app.env' => 'production',
+            'verification.webhook_url' => '',
+        ]);
+
+        $this->expectException(ValidationException::class);
+
+        app(AuthBusiness::class)->sendCode(['account' => 'prod@example.com', 'scene' => 'login']);
+    }
+
+    public function test_send_code_does_not_persist_pending_code_when_delivery_fails(): void
+    {
+        Http::fake([
+            'https://notify.example.com/code' => Http::response(['message' => 'provider down'], 502),
+        ]);
+        config([
+            'verification.webhook_url' => 'https://notify.example.com/code',
+        ]);
+
+        $this->expectException(ValidationException::class);
+
+        try {
+            app(AuthBusiness::class)->sendCode(['account' => 'failed@example.com', 'scene' => 'login']);
+        } finally {
+            $this->assertSame(0, VerificationCode::where('account', 'failed@example.com')->count());
+        }
+    }
+}

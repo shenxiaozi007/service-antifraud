@@ -6,7 +6,11 @@ App({
   },
 
   async onLaunch() {
-    await this.ensureLogin();
+    try {
+      await this.ensureLogin();
+    } catch (error) {
+      this.globalData.user = null;
+    }
   },
 
   async ensureLogin() {
@@ -21,19 +25,7 @@ App({
       }
     }
 
-    const loginResult = await this.wxLogin();
-    const openid = wx.getStorageSync('dev_openid') || `dev_${Date.now()}`;
-    wx.setStorageSync('dev_openid', openid);
-
-    const result = await api.wechatLogin({
-      code: loginResult.code || String(Date.now()),
-      openid,
-      nickname: '微信用户'
-    });
-
-    wx.setStorageSync('token', result.token);
-    this.globalData.user = result.user;
-    return result.user;
+    throw new Error('请先登录');
   },
 
   wxLogin() {

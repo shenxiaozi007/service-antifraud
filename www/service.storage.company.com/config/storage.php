@@ -23,5 +23,11 @@ return [
             'cdn_host' => env('R2_PUBLIC_HOST', ''),
             'use_path_style_endpoint' => env('R2_PATH_STYLE', true),
         ],
+        'local' => [
+            'driver' => 'local',
+            'bucket' => env('LOCAL_STORAGE_BUCKET', 'local'),
+            'root' => env('LOCAL_STORAGE_ROOT', storage_path('app/files')),
+            'public_url' => env('LOCAL_STORAGE_PUBLIC_URL', env('APP_URL', '')),
+        ],
     ],
 ];

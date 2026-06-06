@@ -10,11 +10,14 @@ class StorageDisk extends BaseConstant
 
     public const CLOUDFLARE_R2 = 'cloudflare_r2';
 
+    public const LOCAL = 'local';
+
     public static function getNames(): array
     {
         return [
             self::TENCENT_COS => '腾讯云 COS',
             self::CLOUDFLARE_R2 => 'Cloudflare R2',
+            self::LOCAL => '本地存储',
         ];
     }
 

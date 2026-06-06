@@ -23,8 +23,28 @@ function durationText(seconds) {
   return `${minute}:${second}`;
 }
 
+const statusText = {
+  pending: '排队中',
+  processing: '分析中',
+  success: '已完成',
+  failed: '分析失败',
+  canceled: '已取消'
+};
+
+function analysisStatusLabel(status) {
+  return statusText[status] || '处理中';
+}
+
+function analysisStatusClass(status) {
+  if (status === 'failed' || status === 'canceled') return 'critical';
+  if (status === 'pending' || status === 'processing') return 'medium';
+  return '';
+}
+
 module.exports = {
   riskLabel,
   riskClass,
-  durationText
+  durationText,
+  analysisStatusLabel,
+  analysisStatusClass
 };

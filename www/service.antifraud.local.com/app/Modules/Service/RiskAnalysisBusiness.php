@@ -2,18 +2,24 @@
 
 namespace App\Modules\Service;
 
+use App\Libraries\Agent\LlmClient;
 use App\Modules\Basics\Constant\AnalysisConstant;
 use App\Modules\Basics\Dao\RiskRuleDao;
 use Illuminate\Support\Collection;
 
 class RiskAnalysisBusiness
 {
-    public function __construct(protected RiskRuleDao $riskRuleDao)
+    public function __construct(protected RiskRuleDao $riskRuleDao, protected LlmClient $llmClient)
     {
     }
 
     public function analyze(string $text): array
     {
+        $llm = $this->llmClient->analyze($this->prompt($text));
+        if (($llm['enabled'] ?? false) && ($llm['success'] ?? false)) {
+            return $this->normalizeLlmResult($llm, $text);
+        }
+
         $rules = $this->rules();
         $riskItems = [];
         $score = 0;
@@ -40,6 +46,50 @@ class RiskAnalysisBusiness
             'summary' => $this->summary($riskLevel),
             'suggestions' => $this->suggestions($riskLevel),
             'risk_items' => array_slice($riskItems, 0, 8),
+            'llm_model' => $llm['model'] ?? '',
+            'llm_duration_ms' => $llm['duration_ms'] ?? 0,
+            'llm_raw_output' => $llm['raw'] ?? null,
+        ];
+    }
+
+    protected function prompt(string $text): string
+    {
+        return <<<PROMPT
+请分析以下图片OCR或录音转写内容的诈骗风险，输出 JSON：
+{
+  "risk_level": "low|medium|high|critical",
+  "risk_score": 0-100,
+  "title": "报告标题",
+  "summary": "一句话结论",
+  "suggestions": ["建议"],
+  "risk_items": [{"category":"分类","severity":"low|medium|high|critical","description":"说明","evidence_text":"证据"}],
+  "confidence": 0-1
+}
+
+内容：
+{$text}
+PROMPT;
+    }
+
+    protected function normalizeLlmResult(array $llm, string $text): array
+    {
+        $result = $llm['result'];
+
+        return [
+            'risk_level' => in_array($result['risk_level'] ?? '', AnalysisConstant::riskLevels(), true) ? $result['risk_level'] : AnalysisConstant::RISK_LOW,
+            'risk_score' => max(0, min(100, (int) ($result['risk_score'] ?? 0))),
+            'title' => (string) ($result['title'] ?? '反诈风险分析报告'),
+            'summary' => (string) ($result['summary'] ?? '已完成智能风险分析。'),
+            'suggestions' => array_values((array) ($result['suggestions'] ?? [])),
+            'risk_items' => array_slice(array_map(fn ($item) => [
+                'category' => (string) ($item['category'] ?? '综合风险'),
+                'severity' => (string) ($item['severity'] ?? 'medium'),
+                'description' => (string) ($item['description'] ?? '存在需要进一步核实的风险信号。'),
+                'evidence_text' => (string) ($item['evidence_text'] ?? ''),
+            ], (array) ($result['risk_items'] ?? [])), 0, 8),
+            'llm_model' => $llm['model'] ?? '',
+            'llm_duration_ms' => $llm['duration_ms'] ?? 0,
+            'llm_raw_output' => $llm['raw'] ?? null,
         ];
     }
 

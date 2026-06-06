@@ -1,0 +1,424 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Object Storage Service - File API",
+    "description": "公共对象存储服务文件接口文档，可导入 Apifox。",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "File",
+      "description": "文件上传、详情、下载和预览"
+    }
+  ],
+  "paths": {
+    "/service/api/v1/file/upload": {
+      "post": {
+        "tags": [
+          "File"
+        ],
+        "summary": "上传文件",
+        "description": "上传文件。文件字段名不限，服务会取第一个上传文件。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "待上传文件。实际服务会读取第一个上传文件，字段名不限。"
+                  },
+                  "file_name": {
+                    "type": "string",
+                    "description": "自定义文件名；为空时使用原始文件名。"
+                  },
+                  "disk": {
+                    "$ref": "#/components/schemas/StorageDisk"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "上传成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/FileObject"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/service/api/v1/file/detail": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "获取文件详情",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FileId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/FileObject"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/service/api/v1/file/download-url": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "获取文件下载 URL",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FileId"
+          },
+          {
+            "name": "expires",
+            "in": "query",
+            "required": false,
+            "description": "下载 URL 有效期，单位秒；0 表示使用存储驱动默认值，最大 604800。",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 604800
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "file_id",
+                            "download_url"
+                          ],
+                          "properties": {
+                            "file_id": {
+                              "type": "string",
+                              "description": "文件业务 ID。"
+                            },
+                            "download_url": {
+                              "type": "string",
+                              "format": "uri",
+                              "description": "文件下载 URL。"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/service/api/v1/file/download": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "下载文件",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FileId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "文件二进制流，Content-Disposition 为 attachment。",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/service/api/v1/file/preview": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "预览文件",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FileId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "文件二进制流，Content-Disposition 为 inline。",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/service/api/v1/file/disks": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "获取存储磁盘列表",
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "example": {
+                            "tencent_cos": "腾讯云 COS",
+                            "cloudflare_r2": "Cloudflare R2"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "FileId": {
+        "name": "file_id",
+        "in": "query",
+        "required": true,
+        "description": "文件业务 ID。",
+        "schema": {
+          "type": "string",
+          "maxLength": 64
+        }
+      }
+    },
+    "responses": {
+      "ErrorResponse": {
+        "description": "请求失败",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiResponse"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "time",
+          "module"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "业务状态码，成功为 0。"
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息。"
+          },
+          "data": {
+            "nullable": true,
+            "description": "响应数据。"
+          },
+          "time": {
+            "type": "string",
+            "description": "服务器响应时间。"
+          },
+          "module": {
+            "type": "string",
+            "description": "服务模块名。"
+          }
+        }
+      },
+      "StorageDisk": {
+        "type": "string",
+        "description": "存储磁盘；为空时使用服务默认磁盘。",
+        "enum": [
+          "tencent_cos",
+          "cloudflare_r2"
+        ]
+      },
+      "FileObject": {
+        "type": "object",
+        "required": [
+          "file_id",
+          "disk",
+          "bucket",
+          "object_key",
+          "original_name",
+          "mime_type",
+          "extension",
+          "size",
+          "hash",
+          "file_url"
+        ],
+        "properties": {
+          "file_id": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "文件业务 ID。"
+          },
+          "disk": {
+            "$ref": "#/components/schemas/StorageDisk"
+          },
+          "bucket": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "存储桶。"
+          },
+          "object_key": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "对象 Key。"
+          },
+          "original_name": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "原始文件名。"
+          },
+          "mime_type": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "MIME 类型。"
+          },
+          "extension": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "扩展名。"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "文件大小，单位字节。"
+          },
+          "hash": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "文件 MD5。"
+          },
+          "file_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "文件访问 URL。"
+          }
+        }
+      }
+    }
+  }
+}

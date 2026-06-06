@@ -17,9 +17,9 @@
       <view class="list-item" data-id="{{item.id}}" bindtap="goReport">
         <view class="row">
           <view class="record-title">{{item.title}}</view>
-          <view class="tag {{item.riskClass}}">{{item.riskLabel}}</view>
+          <view class="tag {{item.tagClass}}">{{item.tagLabel}}</view>
         </view>
-        <view class="muted">{{item.type === 'image' ? '帮您看' : '帮您听'}} · {{item.created_at}} · {{item.cost_points}}点</view>
+        <view class="muted">{{item.type === 'image' ? '帮您看' : '帮您听'}} · {{item.created_at}} · {{item.pointText}}</view>
       </view>
     </block>
   </view>

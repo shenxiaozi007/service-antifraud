@@ -2,7 +2,17 @@
   <view wx:if="{{loading}}" class="empty">正在加载报告</view>
 
   <block wx:else>
-    <view class="card section">
+    <view class="card section status-card" wx:if="{{report.status !== 'success'}}">
+      <view class="row">
+        <view class="tag {{statusClass}}">{{statusLabel}}</view>
+        <view class="muted">{{report.created_at}}</view>
+      </view>
+      <view class="report-title">{{report.title}}</view>
+      <view class="summary">{{report.status === 'failed' ? (report.error_message || '分析失败，点数已退回，可重新提交材料。') : '材料已提交，正在生成报告。'}}</view>
+      <view class="meta" wx:if="{{report.frozen_points}}">冻结点数：{{report.frozen_points}} 点</view>
+    </view>
+
+    <view class="card section" wx:if="{{report.status === 'success'}}">
       <view class="row">
         <view class="tag {{riskClass}}">{{riskLabel}}</view>
         <view class="muted">{{report.analyzed_at}}</view>
@@ -11,14 +21,14 @@
       <view class="summary">{{report.summary}}</view>
     </view>
 
-    <view class="card section">
+    <view class="card section" wx:if="{{report.status === 'success'}}">
       <view class="block-title">建议动作</view>
       <block wx:for="{{report.suggestions}}" wx:key="index">
         <view class="advice">{{index + 1}}. {{item}}</view>
       </block>
     </view>
 
-    <view class="card section">
+    <view class="card section" wx:if="{{report.status === 'success'}}">
       <view class="block-title">主要风险点</view>
       <view wx:if="{{!report.risk_items.length}}" class="muted">暂未发现明显风险点</view>
       <block wx:for="{{report.risk_items}}" wx:key="index">
@@ -35,6 +45,7 @@
 
     <view class="card section">
       <view class="block-title">分析信息</view>
+      <view class="meta">状态：{{statusLabel}}</view>
       <view class="meta">类型：{{report.type === 'image' ? '帮您看' : '帮您听'}}</view>
       <view class="meta">消耗：{{report.cost_points}} 点</view>
       <view class="meta" wx:if="{{report.image_count}}">图片：{{report.image_count}} 张</view>
@@ -42,9 +53,9 @@
       <view class="disclaimer">{{report.disclaimer}}</view>
     </view>
 
-    <view class="row actions">
-      <view class="button ghost" bindtap="again">再分析一次</view>
-      <button class="share" open-type="share">分享给家人</button>
+    <view class="row actions" wx:if="{{report.status !== 'pending' && report.status !== 'processing'}}">
+      <view class="button ghost" bindtap="again">{{report.status === 'failed' ? '重新提交' : '再分析一次'}}</view>
+      <button wx:if="{{report.status === 'success'}}" class="share" open-type="share">分享给家人</button>
     </view>
   </block>
 </view>

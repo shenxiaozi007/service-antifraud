@@ -88,14 +88,12 @@ Page({
     wx.showLoading({ title: '分析中' });
 
     try {
-      const file = await api.uploadToken({
-        file_type: 'audio',
-        mime_type: 'audio/mpeg',
-        file_size: 1
-      });
+      const file = this.data.audioPath
+        ? await api.uploadCommonFile(this.data.audioPath, 'audio', 'analysis_audio')
+        : null;
 
       const result = await api.createAudioAnalysis({
-        file_id: file.file_id,
+        file_id: file ? file.file_id : undefined,
         duration_seconds: Math.max(this.data.duration, 1),
         text: this.data.text || '不要告诉家人，把验证码发给我'
       });

@@ -22,6 +22,11 @@ class UserDao extends BaseDao
         return $this->query()->where('api_token', $token)->where('status', 1)->first();
     }
 
+    public function findByGlobalUserId(int $globalUserId): ?User
+    {
+        return $this->query()->where('global_user_id', $globalUserId)->where('status', 1)->first();
+    }
+
     public function page(array $filters, int $pageSize = 20)
     {
         return $this->query()

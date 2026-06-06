@@ -12,12 +12,17 @@ class FileAsset extends Model
     protected $fillable = [
         'user_id',
         'record_id',
+        'storage_file_id',
         'file_type',
         'storage_key',
         'file_url',
         'mime_type',
         'file_size',
         'ocr_text',
+        'ocr_status',
+        'ocr_error',
         'transcript_text',
+        'transcript_status',
+        'transcript_error',
     ];
 }

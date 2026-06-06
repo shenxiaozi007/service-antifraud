@@ -32,6 +32,7 @@ class AnalysisRecordDao extends BaseDao
             ->where('user_id', $userId)
             ->when($filters['type'] ?? '', fn ($query, string $type) => $query->where('type', $type))
             ->when($filters['risk_level'] ?? '', fn ($query, string $level) => $query->where('risk_level', $level))
+            ->when($filters['status'] ?? '', fn ($query, string $status) => $query->where('status', $status))
             ->orderByDesc('id')
             ->paginate($pageSize);
     }

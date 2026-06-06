@@ -21,7 +21,7 @@ class FileBusiness extends BaseBusiness
     ) {
     }
 
-    public function upload(?UploadedFile $file, ?string $fileName = '', ?string $disk = ''): array
+    public function upload(?UploadedFile $file, ?string $fileName = '', ?string $disk = '', array $meta = []): array
     {
         if (! $file || ! $file->isValid()) {
             throw new FileUploadException(800005);
@@ -66,6 +66,9 @@ class FileBusiness extends BaseBusiness
 
         $fileObject = $this->fileObjectDao->store([
             'file_id' => storage_file_id(),
+            'owner_project' => $meta['owner_project'] ?? '',
+            'owner_user_id' => (int) ($meta['owner_user_id'] ?? 0),
+            'biz_type' => $meta['biz_type'] ?? '',
             'disk' => $disk,
             'bucket' => $storage->getBucket(),
             'object_key' => $objectKey,
@@ -165,6 +168,9 @@ class FileBusiness extends BaseBusiness
     {
         return [
             'file_id' => $fileObject->file_id,
+            'owner_project' => $fileObject->owner_project ?? '',
+            'owner_user_id' => (int) ($fileObject->owner_user_id ?? 0),
+            'biz_type' => $fileObject->biz_type ?? '',
             'disk' => $fileObject->disk,
             'bucket' => $fileObject->bucket,
             'object_key' => $fileObject->object_key,

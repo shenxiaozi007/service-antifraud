@@ -60,6 +60,12 @@ $app->singleton(
 */
 
 $app->configure('app');
+$app->configure('database');
+$app->configure('payment');
+$app->configure('wechat');
+$app->configure('service_auth');
+$app->configure('queue');
+$app->configure('verification');
 
 /*
 |--------------------------------------------------------------------------

@@ -1,0 +1,75 @@
+<?php
+
+namespace Tests;
+
+use App\Libraries\CommonService\CommonServiceClient;
+
+class CommonServiceClientTest extends TestCase
+{
+    public function test_common_service_client_builds_service_signature_headers(): void
+    {
+        config([
+            'common_service.service_app_id' => 'antifraud',
+            'common_service.service_secret' => 'secret',
+        ]);
+
+        $method = new \ReflectionMethod(CommonServiceClient::class, 'headers');
+        $method->setAccessible(true);
+        $headers = $method->invoke(app(CommonServiceClient::class), 'public-token');
+        $expectedSign = hash_hmac('sha256', 'antifraud|'.$headers['X-Service-Timestamp'], 'secret');
+
+        $this->assertSame('antifraud', $headers['X-Service-App-Id']);
+        $this->assertSame($expectedSign, $headers['X-Service-Sign']);
+        $this->assertSame('Bearer public-token', $headers['Authorization']);
+    }
+
+    public function test_common_service_client_uses_configured_project_code(): void
+    {
+        config([
+            'common_service.project_code' => 'antifraud',
+        ]);
+
+        $method = new \ReflectionMethod(CommonServiceClient::class, 'projectCode');
+        $method->setAccessible(true);
+
+        $this->assertSame('antifraud', $method->invoke(app(CommonServiceClient::class)));
+    }
+
+    public function test_common_service_client_queries_wallet_transactions_by_global_user_id_with_service_auth(): void
+    {
+        config([
+            'common_service.project_code' => 'antifraud',
+        ]);
+
+        $client = new InMemoryCommonServiceClientForTransactions();
+        $result = $client->transactionsByUser(20001, ['page_size' => 10]);
+
+        $this->assertSame(10, $result['page_size']);
+        $this->assertSame('get', $client->lastMethod);
+        $this->assertSame('wallet/transactions-by-user', $client->lastPath);
+        $this->assertSame([
+            'user_id' => 20001,
+            'project_code' => 'antifraud',
+            'page_size' => 10,
+        ], $client->lastParams);
+        $this->assertSame('', $client->lastToken);
+    }
+}
+
+class InMemoryCommonServiceClientForTransactions extends CommonServiceClient
+{
+    public string $lastMethod = '';
+    public string $lastPath = '';
+    public array $lastParams = [];
+    public string $lastToken = '';
+
+    protected function request(string $method, string $path, array $params = [], string $token = ''): array
+    {
+        $this->lastMethod = $method;
+        $this->lastPath = $path;
+        $this->lastParams = $params;
+        $this->lastToken = $token;
+
+        return ['items' => [], 'total' => 0, 'page' => 1, 'page_size' => $params['page_size'] ?? 20];
+    }
+}

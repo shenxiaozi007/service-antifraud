@@ -6,6 +6,7 @@ use App\Exceptions\Common\AppException;
 use App\Exceptions\Common\FileUploadException;
 use App\Kernel\Base\BaseController;
 use App\Modules\Service\Business\FileBusiness;
+use App\Modules\Service\Business\Auth\TokenGuard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -18,14 +19,21 @@ class FileController extends BaseController
      *
      * @throws FileUploadException
      */
-    public function upload(Request $request, FileBusiness $fileBusiness): JsonResponse|array|null
+    public function upload(Request $request, FileBusiness $fileBusiness, TokenGuard $tokenGuard): JsonResponse|array|null
     {
         $file = array_first($request->allFiles());
+        $meta = $request->only(['owner_project', 'owner_user_id', 'biz_type']);
+        try {
+            $user = $tokenGuard->user($request);
+            $meta['owner_user_id'] = $user['id'];
+        } catch (\Throwable) {
+        }
 
         return $this->revert($fileBusiness->upload(
             $file,
             $request->get('file_name', ''),
-            $request->get('disk', '')
+            $request->get('disk', ''),
+            $meta
         ));
     }
 

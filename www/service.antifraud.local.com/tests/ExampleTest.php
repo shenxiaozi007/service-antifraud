@@ -33,4 +33,22 @@ class ExampleTest extends TestCase
             'status' => 'ok',
         ]);
     }
+
+    public function test_payment_packages_route_is_registered()
+    {
+        $routes = app('router')->getRoutes();
+        $this->assertArrayHasKey('GET/api/v1/payments/packages', $routes);
+    }
+
+    public function test_file_register_route_is_registered()
+    {
+        $routes = app('router')->getRoutes();
+        $this->assertArrayHasKey('POST/api/v1/files/register', $routes);
+    }
+
+    public function test_management_retry_plan_route_is_registered()
+    {
+        $routes = app('router')->getRoutes();
+        $this->assertArrayHasKey('POST/management/proxy/analysis/{recordId}/retry', $routes);
+    }
 }

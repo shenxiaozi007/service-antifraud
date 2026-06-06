@@ -1,11 +1,35 @@
 <view class="page">
+  <view class="card login-card section" wx:if="{{!user.id}}">
+    <view class="block-title">登录 / 注册</view>
+    <view class="muted login-copy">邮箱或手机号验证后会自动创建公共账号。</view>
+    <input class="input" placeholder="邮箱或手机号" value="{{account}}" bindinput="onAccountInput" />
+    <view class="code-row">
+      <input class="input" placeholder="验证码" value="{{code}}" bindinput="onCodeInput" />
+      <view class="button ghost code-button {{sendingCode ? 'disabled' : ''}}" bindtap="submitSendCode">{{sendingCode ? '发送中' : '发验证码'}}</view>
+    </view>
+    <view class="button {{loggingIn ? 'disabled' : ''}}" bindtap="submitCodeLogin">{{loggingIn ? '登录中' : '登录 / 注册'}}</view>
+    <view class="button secondary wechat-button {{wechatLoggingIn ? 'disabled' : ''}}" bindtap="submitWechatLogin">{{wechatLoggingIn ? '登录中' : '微信一键登录'}}</view>
+  </view>
+
   <view class="card profile">
     <view class="avatar">{{initial}}</view>
     <view>
-      <view class="name">{{user.nickname || '微信用户'}}</view>
+      <view class="name">{{user.nickname || '未登录'}}</view>
       <view class="muted">点数余额</view>
     </view>
     <view class="points">{{user.points_balance || 0}}</view>
+  </view>
+
+  <view class="packages section" wx:if="{{packages.length}}">
+    <block wx:for="{{packages}}" wx:key="id">
+      <view class="package-item {{selectedPackageId === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectPackage">
+        <view>
+          <view class="package-name">{{item.name}}</view>
+          <view class="muted">{{item.points}} 点</view>
+        </view>
+        <view class="package-price">¥{{item.amount_cent / 100}}</view>
+      </view>
+    </block>
   </view>
 
   <view class="button section" bindtap="recharge">充值点数</view>

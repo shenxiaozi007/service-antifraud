@@ -36,6 +36,13 @@ npm run dev:h5
 apps/client/src/api/config.ts
 ```
 
+生产环境示例：
+
+```text
+VITE_API_BASE_URL=https://ant.hxcbox.cn
+VITE_FILE_BASE_URL=https://file.hxcbox.cn
+```
+
 ## 多端构建
 
 H5：
@@ -66,7 +73,8 @@ App 后续可用 HBuilderX / uni-app App 构建链路继续接入。
 
 ## 当前限制
 
-- OCR/ASR 仍由文本框模拟。
-- 文件上传仍只走后端上传凭证，占位对象存储。
-- 微信支付仍为 mock。
-- 正式上线 H5 需要 HTTPS 域名；小程序需要真实 AppID 和合法域名。
+- 图片/音频会先上传到公共文件服务 `file.hxcbox.cn`，再调用反诈服务 `/api/v1/files/register` 绑定业务文件。
+- 非微信环境支持邮箱/手机号验证码登录注册一体化；微信小程序支持 `wx.login` 换取公共 token。
+- 点数套餐和微信支付下单走公共服务；前端拿 `timeStamp/nonceStr/package/signType/paySign` 调起支付。
+- 报告页支持 `pending/processing` 轮询、`success` 展示报告、`failed` 展示错误和重新提交入口。
+- 正式上线 H5 需要 HTTPS 域名；小程序需要真实 AppID、合法域名、微信支付商户配置和 LLM/OCR/ASR 供应商配置。
