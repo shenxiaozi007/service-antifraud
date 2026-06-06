@@ -139,6 +139,7 @@ function resetRecord() {
   duration.value = 0;
 }
 
+// 方法：提交录音或用户粘贴的转写文本，避免使用测试话术作为默认分析内容
 async function submit() {
   if (!canSubmit.value) return;
 
@@ -153,7 +154,7 @@ async function submit() {
     const result = await createAudioAnalysis({
       file_id: file?.file_id || 0,
       duration_seconds: Math.max(duration.value, 1),
-      text: text.value || '不要告诉家人，把验证码发给我'
+      text: text.value.trim()
     });
 
     uni.navigateTo({ url: `/pages/report/index?record_id=${result.record_id}` });
@@ -189,9 +190,9 @@ function clearTimer() {
     <view class="card section">
       <view class="row">
         <view class="feature-title">对话文本</view>
-        <view class="tag medium">联调用</view>
+        <view class="tag medium">可选</view>
       </view>
-      <textarea v-model="text" class="textarea" placeholder="可粘贴录音转写，如：不要告诉家人，把验证码发给我" />
+      <textarea v-model="text" class="textarea" placeholder="可粘贴录音转写文本，帮助系统更快分析" />
     </view>
 
     <view class="cost">不足 1 分钟按 1 分钟计算</view>

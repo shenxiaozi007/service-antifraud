@@ -81,6 +81,7 @@ Page({
     });
   },
 
+  // 方法：提交录音或用户粘贴的转写文本，避免把联调测试话术作为真实内容发送
   async submit() {
     if (!this.data.canSubmit) return;
 
@@ -95,7 +96,7 @@ Page({
       const result = await api.createAudioAnalysis({
         file_id: file ? file.file_id : undefined,
         duration_seconds: Math.max(this.data.duration, 1),
-        text: this.data.text || '不要告诉家人，把验证码发给我'
+        text: (this.data.text || '').trim()
       });
 
       wx.navigateTo({ url: `/pages/report/index?record_id=${result.record_id}` });

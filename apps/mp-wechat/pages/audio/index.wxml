@@ -15,9 +15,9 @@
   <view class="card section">
     <view class="row">
       <view class="feature-title">对话文本</view>
-      <view class="tag medium">联调用</view>
+      <view class="tag medium">可选</view>
     </view>
-    <textarea class="textarea" placeholder="可粘贴录音转写，如：不要告诉家人，把验证码发给我" value="{{text}}" bindinput="onTextInput"></textarea>
+    <textarea class="textarea" placeholder="可粘贴录音转写文本，帮助系统更快分析" value="{{text}}" bindinput="onTextInput"></textarea>
   </view>
 
   <view class="cost">不足 1 分钟按 1 分钟计算</view>

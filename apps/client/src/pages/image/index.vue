@@ -87,7 +87,7 @@ async function submit() {
     <view class="card section">
       <view class="row">
         <view class="feature-title">风险文本</view>
-        <view class="tag">联调用</view>
+        <view class="tag">智能分析</view>
       </view>
       <textarea v-model="text" class="textarea" placeholder="可粘贴截图里的宣传话术，如：保证收益、稳赚不赔、名额有限" />
     </view>

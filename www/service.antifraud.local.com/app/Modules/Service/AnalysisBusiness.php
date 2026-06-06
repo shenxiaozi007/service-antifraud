@@ -221,7 +221,15 @@ class AnalysisBusiness extends BaseBusiness
                 $textParts[] = $record->summary;
             }
             foreach ($record->fileAssets as $file) {
-                $textParts[] = $this->contentExtractionService->extract($file)['text'];
+                try {
+                    $textParts[] = $this->contentExtractionService->extract($file)['text'];
+                } catch (\Throwable $exception) {
+                    if (!$record->summary) {
+                        throw $exception;
+                    }
+
+                    $this->markFileExtractionFailed($file, $exception);
+                }
             }
             $text = trim(implode("\n", array_filter($textParts)));
             $result = $this->riskAnalysisBusiness->analyze($text);
@@ -264,6 +272,23 @@ class AnalysisBusiness extends BaseBusiness
             'status' => AnalysisConstant::STATUS_FAILED,
             'error_message' => $e->getMessage(),
             'frozen_points' => 0,
+        ])->save();
+    }
+
+    private function markFileExtractionFailed($file, \Throwable $exception): void
+    {
+        if ($file->file_type === AnalysisConstant::TYPE_IMAGE) {
+            $file->fill([
+                'ocr_status' => 'failed',
+                'ocr_error' => mb_substr($exception->getMessage(), 0, 500),
+            ])->save();
+
+            return;
+        }
+
+        $file->fill([
+            'transcript_status' => 'failed',
+            'transcript_error' => mb_substr($exception->getMessage(), 0, 500),
         ])->save();
     }
 

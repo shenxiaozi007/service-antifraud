@@ -33,7 +33,9 @@ class ContentExtractionService
             $message = $this->errorMessage($result, '音频转写失败');
             $file->fill(['transcript_status' => 'failed', 'transcript_error' => $message])->save();
 
-            throw new \RuntimeException($message);
+            if (!$this->shouldFallbackWhenProviderFails($result)) {
+                throw new \RuntimeException($message);
+            }
         }
 
         $text = $file->transcript_text ?: (($result['success'] ?? false) ? $result['text'] : $this->fallbackText($file));
@@ -70,5 +72,15 @@ class ContentExtractionService
         }
 
         return trim($default.($raw ? '：'.mb_substr((string) $raw, 0, 500) : ''));
+    }
+
+    protected function shouldFallbackWhenProviderFails(array $result): bool
+    {
+        $raw = (string) ($result['raw'] ?? '');
+
+        return str_contains($raw, '404')
+            || str_contains($raw, 'not found')
+            || str_contains($raw, 'Unsupported')
+            || str_contains($raw, 'unsupported');
     }
 }
