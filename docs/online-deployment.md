@@ -146,6 +146,18 @@ WECHAT_LOGIN_MOCK=false
 VERIFICATION_CODE_WEBHOOK_URL=你的短信或邮件验证码发送服务地址
 VERIFICATION_CODE_WEBHOOK_TOKEN=验证码服务token
 
+# 如果暂时没有验证码 webhook，可以直接使用企业微信邮箱发邮箱验证码。
+# 企业微信邮箱 SMTP：smtp.exmail.qq.com，SSL 端口 465。
+VERIFICATION_CODE_MAIL_ENABLED=true
+VERIFICATION_CODE_MAIL_HOST=smtp.exmail.qq.com
+VERIFICATION_CODE_MAIL_PORT=465
+VERIFICATION_CODE_MAIL_ENCRYPTION=ssl
+VERIFICATION_CODE_MAIL_USERNAME=你的企业邮箱账号
+VERIFICATION_CODE_MAIL_PASSWORD=企业邮箱客户端专用密码或授权码
+VERIFICATION_CODE_MAIL_FROM_ADDRESS=你的企业邮箱账号
+VERIFICATION_CODE_MAIL_FROM_NAME=守护者max
+VERIFICATION_CODE_MAIL_TIMEOUT=15
+
 WECHAT_PAY_APP_ID=微信支付AppID
 WECHAT_PAY_MCH_ID=商户号
 WECHAT_PAY_API_V3_KEY=APIv3密钥
@@ -468,6 +480,27 @@ SELECT related_no, amount, type, status FROM wallet_transactions ORDER BY id DES
 - 管理端 `/management/proxy/analysis/{recordId}/retry` 只能重试 `failed` 任务
 
 ## 21. 常见问题
+
+### 邮箱验证码发送失败
+
+企业微信邮箱 SMTP 配置：
+
+```env
+VERIFICATION_CODE_MAIL_ENABLED=true
+VERIFICATION_CODE_MAIL_HOST=smtp.exmail.qq.com
+VERIFICATION_CODE_MAIL_PORT=465
+VERIFICATION_CODE_MAIL_ENCRYPTION=ssl
+VERIFICATION_CODE_MAIL_USERNAME=你的企业邮箱账号
+VERIFICATION_CODE_MAIL_PASSWORD=企业邮箱客户端专用密码或授权码
+VERIFICATION_CODE_MAIL_FROM_ADDRESS=你的企业邮箱账号
+VERIFICATION_CODE_MAIL_FROM_NAME=守护者max
+```
+
+注意：
+
+- `VERIFICATION_CODE_MAIL_PASSWORD` 通常不是网页登录密码，而是客户端专用密码或授权码。
+- 邮箱账号需要在企业邮箱后台开启 SMTP 服务。
+- 邮箱验证码只支持邮箱账号；手机号验证码仍需要短信 webhook。
 
 ### 公共服务调用不生效
 

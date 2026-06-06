@@ -97,7 +97,6 @@ else
   require_value "${COMMON_ENV}" SERVICE_SECRET
   require_value "${COMMON_ENV}" WECHAT_MINI_PROGRAM_APP_ID
   require_value "${COMMON_ENV}" WECHAT_MINI_PROGRAM_APP_SECRET
-  require_value "${COMMON_ENV}" VERIFICATION_CODE_WEBHOOK_URL
   require_value "${COMMON_ENV}" R2_ACCESS_KEY_ID
   require_value "${COMMON_ENV}" R2_SECRET_ACCESS_KEY
   require_value "${COMMON_ENV}" R2_BUCKET
@@ -111,6 +110,17 @@ else
   require_url_prefix "${COMMON_ENV}" WECHAT_PAY_NOTIFY_URL "https://file.hxcbox.cn/service/api/v1/payment/wechat/notify"
   require_false "${COMMON_ENV}" WECHAT_LOGIN_MOCK
   require_false "${COMMON_ENV}" WECHAT_PAY_MOCK
+
+  verification_webhook="$(load_env_value "${COMMON_ENV}" VERIFICATION_CODE_WEBHOOK_URL)"
+  verification_mail_enabled="$(load_env_value "${COMMON_ENV}" VERIFICATION_CODE_MAIL_ENABLED)"
+  if [ -z "${verification_webhook}" ]; then
+    if [ "${verification_mail_enabled}" != "true" ]; then
+      fail "${COMMON_ENV}: configure VERIFICATION_CODE_WEBHOOK_URL or set VERIFICATION_CODE_MAIL_ENABLED=true"
+    fi
+    require_value "${COMMON_ENV}" VERIFICATION_CODE_MAIL_HOST
+    require_value "${COMMON_ENV}" VERIFICATION_CODE_MAIL_USERNAME
+    require_value "${COMMON_ENV}" VERIFICATION_CODE_MAIL_PASSWORD
+  fi
 
   ant_secret="$(load_env_value "${ANT_ENV}" COMMON_SERVICE_SECRET)"
   common_secret="$(load_env_value "${COMMON_ENV}" SERVICE_SECRET)"

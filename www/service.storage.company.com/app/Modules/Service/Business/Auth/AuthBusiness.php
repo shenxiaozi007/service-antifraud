@@ -197,6 +197,12 @@ class AuthBusiness
     {
         $webhookUrl = (string) config('verification.webhook_url', '');
         if ($webhookUrl === '') {
+            if ($this->shouldSendVerificationCodeByMail($account)) {
+                $this->sendVerificationCodeByMail($account, $scene, $code);
+
+                return;
+            }
+
             if (config('app.env') === 'production') {
                 throw ValidationException::withMessages(['account' => '验证码发送通道未配置']);
             }
@@ -220,6 +226,120 @@ class AuthBusiness
         if (!$response->successful()) {
             throw ValidationException::withMessages(['account' => '验证码发送失败：'.$response->body()]);
         }
+    }
+
+    protected function shouldSendVerificationCodeByMail(string $account): bool
+    {
+        return filter_var($account, FILTER_VALIDATE_EMAIL)
+            && (bool) config('verification.mail.enabled', false);
+    }
+
+    protected function sendVerificationCodeByMail(string $account, string $scene, string $code): void
+    {
+        $host = (string) config('verification.mail.host', '');
+        $port = (int) config('verification.mail.port', 465);
+        $username = (string) config('verification.mail.username', '');
+        $password = (string) config('verification.mail.password', '');
+        $fromAddress = (string) config('verification.mail.from_address', $username);
+        $fromName = (string) config('verification.mail.from_name', '守护者max');
+        if ($host === '' || $username === '' || $password === '' || $fromAddress === '') {
+            throw ValidationException::withMessages(['account' => '邮箱验证码发送配置缺失']);
+        }
+
+        $subject = '守护者max 登录验证码';
+        $sceneText = $scene === 'login' ? '登录/注册' : $scene;
+        $body = "您的{$sceneText}验证码是：{$code}\r\n\r\n验证码 5 分钟内有效。如非本人操作，请忽略本邮件。";
+
+        try {
+            $this->sendSmtpMail($host, $port, $account, $subject, $body, $fromAddress, $fromName, $username, $password);
+        } catch (\Throwable $exception) {
+            throw ValidationException::withMessages(['account' => '邮箱验证码发送失败：'.$exception->getMessage()]);
+        }
+    }
+
+    protected function sendSmtpMail(
+        string $host,
+        int $port,
+        string $to,
+        string $subject,
+        string $body,
+        string $fromAddress,
+        string $fromName,
+        string $username,
+        string $password,
+    ): void {
+        $timeout = (int) config('verification.mail.timeout', 15);
+        $remote = ((string) config('verification.mail.encryption', 'ssl') === 'ssl' ? 'ssl://' : '').$host.':'.$port;
+        $socket = stream_socket_client($remote, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT);
+        if (!$socket) {
+            throw new \RuntimeException($errstr ?: 'SMTP 连接失败');
+        }
+
+        stream_set_timeout($socket, $timeout);
+
+        try {
+            $this->smtpExpect($socket, [220]);
+            $serverName = parse_url((string) config('app.url', 'localhost'), PHP_URL_HOST) ?: 'localhost';
+            $this->smtpCommand($socket, 'EHLO '.$serverName, [250]);
+            $this->smtpCommand($socket, 'AUTH LOGIN', [334]);
+            $this->smtpCommand($socket, base64_encode($username), [334]);
+            $this->smtpCommand($socket, base64_encode($password), [235]);
+            $this->smtpCommand($socket, 'MAIL FROM:<'.$fromAddress.'>', [250]);
+            $this->smtpCommand($socket, 'RCPT TO:<'.$to.'>', [250, 251]);
+            $this->smtpCommand($socket, 'DATA', [354]);
+            fwrite($socket, $this->smtpMessage($to, $subject, $body, $fromAddress, $fromName));
+            $this->smtpExpect($socket, [250]);
+            $this->smtpCommand($socket, 'QUIT', [221]);
+        } finally {
+            fclose($socket);
+        }
+    }
+
+    protected function smtpMessage(string $to, string $subject, string $body, string $fromAddress, string $fromName): string
+    {
+        $encodedSubject = '=?UTF-8?B?'.base64_encode($subject).'?=';
+        $encodedFromName = '=?UTF-8?B?'.base64_encode($fromName).'?=';
+
+        return implode("\r\n", [
+            'Date: '.date(DATE_RFC2822),
+            'From: '.$encodedFromName.' <'.$fromAddress.'>',
+            'To: <'.$to.'>',
+            'Subject: '.$encodedSubject,
+            'MIME-Version: 1.0',
+            'Content-Type: text/plain; charset=UTF-8',
+            'Content-Transfer-Encoding: base64',
+            '',
+            chunk_split(base64_encode($body)),
+            '.',
+            '',
+        ]);
+    }
+
+    protected function smtpCommand($socket, string $command, array $expectedCodes): string
+    {
+        fwrite($socket, $command."\r\n");
+
+        return $this->smtpExpect($socket, $expectedCodes);
+    }
+
+    protected function smtpExpect($socket, array $expectedCodes): string
+    {
+        $response = '';
+        do {
+            $line = fgets($socket, 512);
+            if ($line === false) {
+                break;
+            }
+            $response .= $line;
+            $continued = isset($line[3]) && $line[3] === '-';
+        } while ($continued);
+
+        $code = (int) substr($response, 0, 3);
+        if (!in_array($code, $expectedCodes, true)) {
+            throw new \RuntimeException(trim($response) ?: 'SMTP 响应异常');
+        }
+
+        return $response;
     }
 
     protected function wechatSession(array $data): array

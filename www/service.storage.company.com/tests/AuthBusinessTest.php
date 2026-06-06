@@ -2,8 +2,12 @@
 
 namespace Tests;
 
-use App\Modules\Service\Business\Auth\AuthBusiness;
+use App\Modules\Basics\Dao\Auth\AuthIdentityDao;
+use App\Modules\Basics\Dao\Auth\AuthTokenDao;
+use App\Modules\Basics\Dao\Auth\CommonUserDao;
+use App\Modules\Basics\Dao\Auth\VerificationCodeDao;
 use App\Modules\Basics\Model\Auth\VerificationCode;
+use App\Modules\Service\Business\Auth\AuthBusiness;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
@@ -144,11 +148,52 @@ class AuthBusinessTest extends TestCase
         config([
             'app.env' => 'production',
             'verification.webhook_url' => '',
+            'verification.mail.enabled' => false,
         ]);
 
         $this->expectException(ValidationException::class);
 
         app(AuthBusiness::class)->sendCode(['account' => 'prod@example.com', 'scene' => 'login']);
+    }
+
+    public function test_production_send_code_can_dispatch_email_by_smtp(): void
+    {
+        config([
+            'app.env' => 'production',
+            'verification.webhook_url' => '',
+            'verification.mail.enabled' => true,
+            'verification.mail.host' => 'smtp.exmail.qq.com',
+            'verification.mail.port' => 465,
+            'verification.mail.username' => 'noreply@example.com',
+            'verification.mail.password' => 'smtp-secret',
+            'verification.mail.from_address' => 'noreply@example.com',
+            'verification.mail.from_name' => '守护者max',
+        ]);
+
+        $business = \Mockery::mock(AuthBusiness::class, [
+            app(CommonUserDao::class),
+            app(AuthIdentityDao::class),
+            app(AuthTokenDao::class),
+            app(VerificationCodeDao::class),
+        ])->makePartial()->shouldAllowMockingProtectedMethods();
+        $business->shouldReceive('sendSmtpMail')
+            ->once()
+            ->withArgs(function ($host, $port, $to, $subject, $body, $fromAddress, $fromName, $username, $password) {
+                return $host === 'smtp.exmail.qq.com'
+                    && $port === 465
+                    && $to === 'prod@example.com'
+                    && $subject === '守护者max 登录验证码'
+                    && str_contains($body, '验证码')
+                    && $fromAddress === 'noreply@example.com'
+                    && $fromName === '守护者max'
+                    && $username === 'noreply@example.com'
+                    && $password === 'smtp-secret';
+            });
+
+        $sent = $business->sendCode(['account' => 'prod@example.com', 'scene' => 'login']);
+
+        $this->assertSame('', $sent['debug_code']);
+        $this->assertSame(1, VerificationCode::where('account', 'prod@example.com')->count());
     }
 
     public function test_send_code_does_not_persist_pending_code_when_delivery_fails(): void
