@@ -11,6 +11,8 @@ Page({
     account: '',
     code: '',
     sendingCode: false,
+    codeCountdown: 0,
+    codeButtonText: '发验证码',
     loggingIn: false,
     wechatLoggingIn: false,
     selectedPackageId: 0
@@ -33,6 +35,11 @@ Page({
     });
   },
 
+  // 生命周期：页面卸载时清理验证码倒计时，避免定时器残留影响后续页面实例
+  onUnload() {
+    this.clearCodeCountdownTimer();
+  },
+
   onAccountInput(event) {
     this.setData({ account: event.detail.value });
   },
@@ -41,8 +48,39 @@ Page({
     this.setData({ code: event.detail.value });
   },
 
+  // 方法：清理验证码倒计时定时器，供倒计时结束和页面卸载时复用
+  clearCodeCountdownTimer() {
+    if (this.codeCountdownTimer) {
+      clearInterval(this.codeCountdownTimer);
+      this.codeCountdownTimer = null;
+    }
+  },
+
+  // 方法：发送验证码成功后启动 60 秒倒计时，减少重复发送请求和用户误触
+  startCodeCountdown(seconds = 60) {
+    this.clearCodeCountdownTimer();
+    this.setData({
+      codeCountdown: seconds,
+      codeButtonText: `${seconds}s`
+    });
+    this.codeCountdownTimer = setInterval(() => {
+      const next = Math.max(Number(this.data.codeCountdown || 0) - 1, 0);
+      this.setData({
+        codeCountdown: next,
+        codeButtonText: next > 0 ? `${next}s` : '发验证码'
+      });
+      if (next <= 0) {
+        this.clearCodeCountdownTimer();
+      }
+    }, 1000);
+  },
+
   // 方法：发送邮箱/手机号验证码，给非微信环境提供注册登录入口
   async submitSendCode() {
+    if (this.data.sendingCode || this.data.codeCountdown > 0) {
+      return;
+    }
+
     if (!this.data.account) {
       wx.showToast({ title: '请输入邮箱或手机号', icon: 'none' });
       return;
@@ -53,6 +91,7 @@ Page({
       const result = await api.sendCode({ account: this.data.account, scene: 'login' });
       const debug = result.debug_code ? `：${result.debug_code}` : '';
       wx.showToast({ title: `验证码已发送${debug}`, icon: 'none' });
+      this.startCodeCountdown(60);
     } finally {
       this.setData({ sendingCode: false });
     }

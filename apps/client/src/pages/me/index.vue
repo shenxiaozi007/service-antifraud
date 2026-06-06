@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { onShow } from '@dcloudio/uni-app';
+import { onShow, onUnload } from '@dcloudio/uni-app';
 import { codeLogin, createPaymentOrder, getPaymentPackages, getTransactions, me, sendCode } from '@/api/client';
 import { ensureLogin, resetSession, session } from '@/stores/session';
 import { setToken } from '@/api/request';
@@ -14,10 +14,19 @@ const showTransactions = ref(false);
 const account = ref('');
 const code = ref('');
 const sendingCode = ref(false);
+const codeCountdown = ref(0);
 const loggingIn = ref(false);
 const selectedPackageId = ref<number | null>(null);
 const initial = computed(() => (user.value?.nickname || '微').slice(0, 1));
 const selectedPackage = computed(() => packages.value.find((item) => item.id === selectedPackageId.value) || packages.value[0] || null);
+const codeButtonText = computed(() => {
+  if (sendingCode.value) {
+    return '发送中';
+  }
+
+  return codeCountdown.value > 0 ? `${codeCountdown.value}s` : '发验证码';
+});
+let codeCountdownTimer: ReturnType<typeof setInterval> | null = null;
 
 onShow(async () => {
   try {
@@ -31,8 +40,37 @@ onShow(async () => {
   }
 });
 
+// 方法：清理验证码倒计时定时器，避免页面隐藏或卸载后仍继续更新状态
+function clearCodeCountdownTimer() {
+  if (codeCountdownTimer) {
+    clearInterval(codeCountdownTimer);
+    codeCountdownTimer = null;
+  }
+}
+
+// 方法：发送验证码成功后启动 60 秒倒计时，防止用户高频重复请求验证码接口
+function startCodeCountdown(seconds = 60) {
+  clearCodeCountdownTimer();
+  codeCountdown.value = seconds;
+  codeCountdownTimer = setInterval(() => {
+    codeCountdown.value -= 1;
+    if (codeCountdown.value <= 0) {
+      codeCountdown.value = 0;
+      clearCodeCountdownTimer();
+    }
+  }, 1000);
+}
+
+onUnload(() => {
+  clearCodeCountdownTimer();
+});
+
 // 方法：发送邮箱/手机号验证码，给非微信环境提供注册登录入口
 async function submitSendCode() {
+  if (sendingCode.value || codeCountdown.value > 0) {
+    return;
+  }
+
   if (!account.value) {
     uni.showToast({ title: '请输入邮箱或手机号', icon: 'none' });
     return;
@@ -43,6 +81,7 @@ async function submitSendCode() {
     const result = await sendCode({ account: account.value, scene: 'login' });
     const debug = result.debug_code ? `：${result.debug_code}` : '';
     uni.showToast({ title: `验证码已发送${debug}`, icon: 'none' });
+    startCodeCountdown(60);
   } finally {
     sendingCode.value = false;
   }
@@ -154,8 +193,8 @@ function clearLocal() {
       <input v-model="account" class="input" placeholder="邮箱或手机号" />
       <view class="code-row">
         <input v-model="code" class="input" placeholder="验证码" />
-        <view class="button ghost code-button" :class="{ disabled: sendingCode }" @tap="submitSendCode">
-          {{ sendingCode ? '发送中' : '发验证码' }}
+        <view class="button ghost code-button" :class="{ disabled: sendingCode || codeCountdown > 0 }" @tap="submitSendCode">
+          {{ codeButtonText }}
         </view>
       </view>
       <view class="button" :class="{ disabled: loggingIn }" @tap="submitCodeLogin">

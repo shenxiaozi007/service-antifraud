@@ -5,7 +5,7 @@
     <input class="input" placeholder="邮箱或手机号" value="{{account}}" bindinput="onAccountInput" />
     <view class="code-row">
       <input class="input" placeholder="验证码" value="{{code}}" bindinput="onCodeInput" />
-      <view class="button ghost code-button {{sendingCode ? 'disabled' : ''}}" bindtap="submitSendCode">{{sendingCode ? '发送中' : '发验证码'}}</view>
+      <view class="button ghost code-button {{sendingCode || codeCountdown > 0 ? 'disabled' : ''}}" bindtap="submitSendCode">{{sendingCode ? '发送中' : codeButtonText}}</view>
     </view>
     <view class="button {{loggingIn ? 'disabled' : ''}}" bindtap="submitCodeLogin">{{loggingIn ? '登录中' : '登录 / 注册'}}</view>
     <view class="button secondary wechat-button {{wechatLoggingIn ? 'disabled' : ''}}" bindtap="submitWechatLogin">{{wechatLoggingIn ? '登录中' : '微信一键登录'}}</view>

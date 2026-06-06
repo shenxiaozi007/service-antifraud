@@ -6,6 +6,7 @@ use App\Libraries\Agent\ContentExtractionService;
 use App\Libraries\Agent\LlmClient;
 use App\Modules\Basics\Constant\AnalysisConstant;
 use App\Modules\Basics\Model\FileAsset;
+use Illuminate\Support\Facades\Http;
 
 class ContentExtractionServiceTest extends TestCase
 {
@@ -71,6 +72,38 @@ class ContentExtractionServiceTest extends TestCase
             $this->assertStringContainsString('provider timeout', $file->ocr_error);
             $this->assertTrue($file->saved);
         }
+    }
+
+    public function test_llm_client_inlines_image_url_as_data_url_for_vision_models(): void
+    {
+        config([
+            'llm.base_url' => 'https://llm.example.com/v1',
+            'llm.api_key' => 'test-key',
+            'llm.vision_model' => 'vision-model',
+            'llm.image_inline_max_bytes' => 1024,
+        ]);
+        Http::fake([
+            'https://r2.example.com/demo.jpeg' => Http::response('fake-image-bytes', 200, ['Content-Type' => 'image/jpeg']),
+            'https://llm.example.com/v1/chat/completions' => Http::response([
+                'choices' => [
+                    ['message' => ['content' => '图片内容摘要']],
+                ],
+            ]),
+        ]);
+
+        $result = app(LlmClient::class)->describeImage('https://r2.example.com/demo.jpeg');
+
+        $this->assertTrue($result['success']);
+        Http::assertSent(function ($request) {
+            if ($request->url() !== 'https://llm.example.com/v1/chat/completions') {
+                return false;
+            }
+
+            $payload = $request->data();
+            $imageUrl = $payload['messages'][0]['content'][1]['image_url']['url'] ?? '';
+
+            return str_starts_with($imageUrl, 'data:image/jpeg;base64,');
+        });
     }
 }
 

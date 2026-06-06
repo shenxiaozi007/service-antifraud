@@ -50,9 +50,11 @@ class LlmClient
 
     public function describeImage(string $imageUrl): array
     {
+        $imageInput = $this->imageInput($imageUrl);
+
         return $this->vision([
             ['type' => 'text', 'text' => '请提取图片中的文字、金额、联系方式、转账信息和可疑诈骗话术，输出纯文本摘要。'],
-            ['type' => 'image_url', 'image_url' => ['url' => $imageUrl]],
+            ['type' => 'image_url', 'image_url' => ['url' => $imageInput]],
         ]);
     }
 
@@ -117,5 +119,47 @@ class LlmClient
         }
 
         return $content;
+    }
+
+    protected function imageInput(string $imageUrl): string
+    {
+        if ($imageUrl === '' || str_starts_with($imageUrl, 'data:')) {
+            return $imageUrl;
+        }
+
+        $maxBytes = (int) config('llm.image_inline_max_bytes', 5 * 1024 * 1024);
+        try {
+            $response = Http::timeout((int) config('llm.image_download_timeout', 15))->get($imageUrl);
+            if (!$response->successful()) {
+                return $imageUrl;
+            }
+
+            $body = $response->body();
+            if ($body === '' || strlen($body) > $maxBytes) {
+                return $imageUrl;
+            }
+
+            $contentType = (string) ($response->header('Content-Type') ?: $this->guessImageContentType($imageUrl));
+            if (!str_starts_with($contentType, 'image/')) {
+                return $imageUrl;
+            }
+
+            return 'data:'.$contentType.';base64,'.base64_encode($body);
+        } catch (\Throwable) {
+            return $imageUrl;
+        }
+    }
+
+    protected function guessImageContentType(string $imageUrl): string
+    {
+        $path = parse_url($imageUrl, PHP_URL_PATH) ?: '';
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        return match ($extension) {
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            'gif' => 'image/gif',
+            default => 'image/jpeg',
+        };
     }
 }

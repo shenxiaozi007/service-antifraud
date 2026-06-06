@@ -223,6 +223,8 @@ LLM_MODEL=文本模型
 LLM_VISION_MODEL=图片理解模型
 LLM_AUDIO_MODEL=音频模型
 LLM_TIMEOUT=60
+LLM_IMAGE_DOWNLOAD_TIMEOUT=15
+LLM_IMAGE_INLINE_MAX_BYTES=5242880
 OCR_PROVIDER=llm
 ASR_PROVIDER=llm
 ```
@@ -572,9 +574,13 @@ LLM_API_KEY=
 LLM_MODEL=
 LLM_VISION_MODEL=
 LLM_AUDIO_MODEL=
+LLM_IMAGE_DOWNLOAD_TIMEOUT=15
+LLM_IMAGE_INLINE_MAX_BYTES=5242880
 ```
 
 LLM 不可用时系统会走关键词 fallback，仍可出基础报告，但不是完整 Agent 效果。
+
+如果图片分析报 `Error while downloading file`，说明第三方 LLM 无法自行下载 R2 图片。当前反诈服务会先在服务器端下载图片并转成 `data:image/...;base64,...` 再发给视觉模型；拉取最新代码并重启 `php-fpm` 后即可生效。
 
 ## 22. 回滚
 
