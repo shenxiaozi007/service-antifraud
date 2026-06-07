@@ -78,13 +78,13 @@ let alipayPollTimer: ReturnType<typeof setTimeout> | null = null;
 let alipayPollCount = 0;
 
 onShow(async () => {
-  // 业务逻辑：页面显示时刷新用户和套餐，失败不阻断页面展示，避免刷新后出现未处理异常
+  // 业务逻辑：页面显示时强制刷新用户钱包，登录、签到、广告奖励和支付后返回本页都要拿最新余额
   try {
-    user.value = await refreshSession();
+    user.value = await refreshSession({ force: true });
   } catch (error) {
     user.value = null;
   }
-  await loadPackages();
+  await loadPackages({ reload: false });
 });
 
 onUnload(() => {
@@ -92,8 +92,12 @@ onUnload(() => {
   stopAlipayPolling();
 });
 
-// 方法：拉取充值套餐并保留用户已选套餐，避免切回页面时选择丢失
-async function loadPackages() {
+// 方法：拉取充值套餐并保留用户已选套餐；默认复用已加载套餐，减少页面 onShow 重复请求造成的卡顿
+async function loadPackages(options: { reload?: boolean } = {}) {
+  if (!options.reload && packages.value.length > 0) {
+    return;
+  }
+
   if (loadingPackages.value) {
     return;
   }
@@ -160,14 +164,19 @@ async function submitSendCode() {
   }
 }
 
-// 方法：统一处理登录成功后的 token、用户缓存和输入状态，避免三种登录方式重复写状态
-function applyLoginResult(result: LoginResponse) {
+// 方法：统一处理登录成功后的 token、用户缓存和输入状态，并强制刷新 /me 获取公共钱包最新余额
+async function applyLoginResult(result: LoginResponse) {
   setToken(result.token);
   session.user = result.user;
   user.value = result.user;
   code.value = '';
   password.value = '';
   passwordConfirmation.value = '';
+  try {
+    user.value = await refreshSession({ force: true });
+  } catch (error) {
+    user.value = result.user;
+  }
   uni.showToast({ title: result.is_new_user ? '注册成功' : '登录成功', icon: 'success' });
 }
 
@@ -181,7 +190,7 @@ async function submitCodeLogin() {
   loggingIn.value = true;
   try {
     const result = await codeLogin({ account: account.value, code: code.value, scene: 'login' });
-    applyLoginResult(result);
+    await applyLoginResult(result);
   } finally {
     loggingIn.value = false;
   }
@@ -197,7 +206,7 @@ async function submitPasswordLogin() {
   loggingIn.value = true;
   try {
     const result = await passwordLogin({ account: account.value, password: password.value });
-    applyLoginResult(result);
+    await applyLoginResult(result);
   } finally {
     loggingIn.value = false;
   }
@@ -223,7 +232,7 @@ async function submitPasswordRegister() {
       password_confirmation: passwordConfirmation.value,
       nickname: nickname.value || undefined
     });
-    applyLoginResult(result);
+    await applyLoginResult(result);
   } finally {
     loggingIn.value = false;
   }

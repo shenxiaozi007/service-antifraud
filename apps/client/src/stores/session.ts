@@ -19,7 +19,8 @@ export async function refreshSession(options: { force?: boolean } = {}): Promise
     throw new Error('请先登录');
   }
 
-  if (refreshingPromise) {
+  // 业务逻辑：普通页面刷新复用并发请求；force 场景通常发生在登录/支付后，需要用最新 token 重新请求
+  if (!options.force && refreshingPromise) {
     return refreshingPromise;
   }
 
