@@ -1,5 +1,6 @@
 import os
 import tempfile
+import logging
 from functools import lru_cache
 from pathlib import Path
 
@@ -8,6 +9,7 @@ from faster_whisper import WhisperModel
 
 
 app = FastAPI(title="Guardian Max ASR", version="1.0.0")
+logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1)
@@ -28,6 +30,18 @@ def health() -> dict:
     return {"status": "ok"}
 
 
+@app.get("/debug/config")
+def debug_config() -> dict:
+    """Return non-sensitive ASR runtime configuration."""
+    return {
+        "model": os.getenv("ASR_MODEL_SIZE", "tiny"),
+        "device": os.getenv("ASR_DEVICE", "cpu"),
+        "compute_type": os.getenv("ASR_COMPUTE_TYPE", "int8"),
+        "cpu_threads": os.getenv("ASR_CPU_THREADS", "1"),
+        "hf_endpoint": os.getenv("HF_ENDPOINT", ""),
+    }
+
+
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...), language: str = "zh") -> dict:
     """Transcribe an uploaded audio file."""
@@ -46,6 +60,7 @@ async def transcribe(file: UploadFile = File(...), language: str = "zh") -> dict
         )
         text = "".join(segment.text for segment in segments).strip()
     except Exception as exc:
+        logger.exception("Audio transcription failed")
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     finally:
         try:
