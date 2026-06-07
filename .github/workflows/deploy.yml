@@ -65,6 +65,9 @@ jobs:
 
             cd $LARADOCK_DIR
             PHP_FPM_CONTAINER=$(docker-compose ps -q php-fpm)
+            if [ -z "$PHP_FPM_CONTAINER" ]; then
+              PHP_FPM_CONTAINER=$(docker ps --format '{{.ID}} {{.Names}}' | awk '/php-fpm/ {print $1; exit}')
+            fi
             if [ -n "$PHP_FPM_CONTAINER" ]; then
               PHP_FPM_NETWORKS=$(docker inspect -f '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' "$PHP_FPM_CONTAINER")
               DOCKER_NETWORK=$(printf '%s\n' "$PHP_FPM_NETWORKS" | head -n 1)
@@ -77,11 +80,15 @@ jobs:
               DOCKER_NETWORK=bridge
             fi
 
+            DOCKER_RUN_NETWORK_OPTIONS="--network $DOCKER_NETWORK"
+            if [ "$DOCKER_NETWORK" != "bridge" ]; then
+              DOCKER_RUN_NETWORK_OPTIONS="$DOCKER_RUN_NETWORK_OPTIONS --network-alias service-antifraud-asr"
+            fi
+
             docker run -d \
               --name service-antifraud-asr \
               --restart unless-stopped \
-              --network "$DOCKER_NETWORK" \
-              --network-alias service-antifraud-asr \
+              $DOCKER_RUN_NETWORK_OPTIONS \
               -e ASR_MODEL_SIZE="${ASR_MODEL_SIZE:-tiny}" \
               -e ASR_DEVICE=cpu \
               -e ASR_COMPUTE_TYPE=int8 \
