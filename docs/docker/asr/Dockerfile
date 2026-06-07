@@ -3,6 +3,7 @@ FROM python:3.11-slim-bookworm
 WORKDIR /app
 
 ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+ARG APT_MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -14,7 +15,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     ASR_COMPUTE_TYPE=int8 \
     ASR_CPU_THREADS=1
 
-RUN apt-get update \
+RUN sed -i "s#http://deb.debian.org/debian#${APT_MIRROR}#g; s#http://deb.debian.org/debian-security#${APT_MIRROR}-security#g" /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
     && apt-get install -y --no-install-recommends \
         libgomp1 \
     && rm -rf /var/lib/apt/lists/*
