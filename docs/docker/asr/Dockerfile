@@ -2,8 +2,12 @@ FROM python:3.11-slim-bookworm
 
 WORKDIR /app
 
+ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PIP_INDEX_URL=${PIP_INDEX_URL} \
+    PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn \
     HF_HOME=/models \
     ASR_MODEL_SIZE=tiny \
     ASR_DEVICE=cpu \
