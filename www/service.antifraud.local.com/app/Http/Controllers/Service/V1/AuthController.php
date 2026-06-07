@@ -28,7 +28,7 @@ class AuthController extends BaseController
     }
 
     /**
-     * 使用邮箱或手机号密码注册。
+     * 使用邮箱密码注册。
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -38,7 +38,7 @@ class AuthController extends BaseController
     }
 
     /**
-     * 使用邮箱或手机号密码登录。
+     * 使用邮箱密码登录。
      *
      * @return \Illuminate\Http\JsonResponse
      */

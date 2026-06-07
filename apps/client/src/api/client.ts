@@ -40,7 +40,7 @@ export function codeLogin(data: Record<string, unknown>) {
   return request<LoginResponse>({ url: '/api/v1/auth/code-login', method: 'POST', data });
 }
 
-// 方法：密码注册公共账号，给邮箱/手机号用户提供长期登录方式
+// 方法：密码注册公共账号，给邮箱用户提供长期登录方式
 export function passwordRegister(data: PasswordRegisterDTO) {
   return request<LoginResponse>({ url: '/api/v1/auth/password-register', method: 'POST', data });
 }

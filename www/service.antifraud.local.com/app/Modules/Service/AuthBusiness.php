@@ -46,7 +46,7 @@ class AuthBusiness extends BaseBusiness
     }
 
     /**
-     * 使用邮箱或手机号密码注册公共账号并同步本地用户。
+     * 使用邮箱密码注册公共账号并同步本地用户。
      *
      * @param array $params 注册参数，包含 account/password/password_confirmation/nickname
      * @return array{token:string,user:array,is_new_user:bool}
@@ -64,7 +64,7 @@ class AuthBusiness extends BaseBusiness
     }
 
     /**
-     * 使用邮箱或手机号密码登录公共账号并同步本地用户。
+     * 使用邮箱密码登录公共账号并同步本地用户。
      *
      * @param array $params 登录参数，包含 account/password
      * @return array{token:string,user:array,is_new_user:bool}

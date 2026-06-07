@@ -110,6 +110,26 @@ class AuthBusinessTest extends TestCase
             'password' => 'abc123456',
         ]);
     }
+
+    public function test_auth_rejects_mobile_account_temporarily(): void
+    {
+        $business = app(AuthBusiness::class);
+
+        try {
+            $business->sendCode(['account' => '13800138000', 'scene' => 'login']);
+            $this->fail('mobile account should be rejected');
+        } catch (ValidationException $exception) {
+            $this->assertSame('当前仅支持邮箱登录', $exception->errors()['account'][0]);
+        }
+
+        $this->expectException(ValidationException::class);
+        $business->passwordRegister([
+            'account' => '13800138000',
+            'password' => 'abc12345',
+            'password_confirmation' => 'abc12345',
+        ]);
+    }
+
     public function test_wechat_login_reuses_openid_identity(): void
     {
         $business = app(AuthBusiness::class);

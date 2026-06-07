@@ -23,7 +23,7 @@ class AuthBusiness
     }
 
     /**
-     * 使用邮箱或手机号注册密码账号，并返回登录态。
+     * 使用邮箱注册密码账号，并返回登录态。
      *
      * @param array $params 注册参数，包含 account/password/password_confirmation/nickname
      * @return array{token:string,user:array,is_new_user:bool}
@@ -35,7 +35,7 @@ class AuthBusiness
             'password' => 'required|string|min:8|max:64|confirmed',
             'nickname' => 'nullable|string|max:128',
         ], [], [
-            'account' => '邮箱或手机号',
+            'account' => '邮箱',
             'password' => '密码',
             'nickname' => '昵称',
         ])->validate();
@@ -79,7 +79,7 @@ class AuthBusiness
     }
 
     /**
-     * 使用邮箱或手机号和密码登录。
+     * 使用邮箱和密码登录。
      *
      * @param array $params 登录参数，包含 account/password
      * @return array{token:string,user:array,is_new_user:bool}
@@ -90,7 +90,7 @@ class AuthBusiness
             'account' => 'required|string|max:191',
             'password' => 'required|string|max:64',
         ], [], [
-            'account' => '邮箱或手机号',
+            'account' => '邮箱',
             'password' => '密码',
         ])->validate();
 
@@ -118,6 +118,7 @@ class AuthBusiness
         ])->validate();
 
         $scene = $data['scene'] ?? 'login';
+        $this->identityTypeByAccount($data['account']);
         $latest = $this->codeDao->latestPending($data['account'], $scene);
         if ($latest && $latest->created_at && $latest->created_at->gt(Carbon::now()->subSeconds(60))) {
             throw ValidationException::withMessages(['account' => '验证码发送太频繁']);
@@ -155,7 +156,7 @@ class AuthBusiness
             throw ValidationException::withMessages(['code' => '验证码错误或已过期']);
         }
 
-        $identityType = filter_var($data['account'], FILTER_VALIDATE_EMAIL) ? 'email' : 'mobile';
+        $identityType = $this->identityTypeByAccount($data['account']);
 
         return DB::transaction(function () use ($data, $code, $identityType) {
             $user = $this->resolveUser($identityType, $data['account'], [
@@ -287,10 +288,10 @@ class AuthBusiness
     }
 
     /**
-     * 根据账号格式判断身份类型，仅允许邮箱或手机号注册登录。
+     * 根据账号格式判断身份类型，当前仅允许邮箱注册登录。
      *
-     * @param string $account 用户输入的邮箱或手机号
-     * @return string email 或 mobile
+     * @param string $account 用户输入的邮箱
+     * @return string email
      */
     protected function identityTypeByAccount(string $account): string
     {
@@ -298,11 +299,7 @@ class AuthBusiness
             return 'email';
         }
 
-        if (preg_match('/^1[3-9]\d{9}$/', $account) === 1) {
-            return 'mobile';
-        }
-
-        throw ValidationException::withMessages(['account' => '请输入正确的邮箱或手机号']);
+        throw ValidationException::withMessages(['account' => '当前仅支持邮箱登录']);
     }
 
     /**

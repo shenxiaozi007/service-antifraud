@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 class AuthController extends BaseController
 {
     /**
-     * 发送邮箱或手机号验证码。
+     * 发送邮箱验证码。
      *
      * @param Request $request 请求参数，包含 account/scene
      * @param AuthBusiness $business 认证业务服务
@@ -34,7 +34,7 @@ class AuthController extends BaseController
     }
 
     /**
-     * 使用密码注册邮箱或手机号账号。
+     * 使用密码注册邮箱账号。
      *
      * @param Request $request 请求参数，包含 account/password/password_confirmation/nickname
      * @param AuthBusiness $business 认证业务服务
@@ -46,7 +46,7 @@ class AuthController extends BaseController
     }
 
     /**
-     * 使用邮箱或手机号密码登录。
+     * 使用邮箱密码登录。
      *
      * @param Request $request 请求参数，包含 account/password
      * @param AuthBusiness $business 认证业务服务

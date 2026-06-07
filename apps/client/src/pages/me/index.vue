@@ -142,14 +142,14 @@ function startCodeCountdown(seconds = 60) {
   }, 1000);
 }
 
-// 方法：发送邮箱/手机号验证码，给非微信环境提供注册登录入口
+// 方法：发送邮箱验证码，给非微信环境提供注册登录入口
 async function submitSendCode() {
   if (sendingCode.value || codeCountdown.value > 0) {
     return;
   }
 
   if (!account.value) {
-    uni.showToast({ title: '请输入邮箱或手机号', icon: 'none' });
+    uni.showToast({ title: '请输入邮箱', icon: 'none' });
     return;
   }
 
@@ -460,7 +460,7 @@ function clearLocal() {
   <view class="page">
     <view v-if="!user" class="card login-card section">
       <view class="block-title">登录 / 注册</view>
-      <view class="muted login-copy">支持邮箱或手机号验证码登录，也可以注册密码后长期登录。</view>
+      <view class="muted login-copy">支持邮箱验证码登录，也可以注册密码后长期登录。</view>
 
       <view class="mode-tabs">
         <view class="mode-tab" :class="{ active: isCodeMode }" @tap="changeLoginMode('code')">验证码</view>
@@ -468,7 +468,7 @@ function clearLocal() {
         <view class="mode-tab" :class="{ active: isPasswordRegisterMode }" @tap="changeLoginMode('password-register')">密码注册</view>
       </view>
 
-      <input v-model="account" class="input" placeholder="邮箱或手机号" />
+      <input v-model="account" class="input" placeholder="邮箱" />
       <view v-if="isCodeMode" class="code-row">
         <input v-model="code" class="input" placeholder="验证码" />
         <view class="button ghost code-button" :class="{ disabled: sendingCode || codeCountdown > 0 }" @tap="submitSendCode">
