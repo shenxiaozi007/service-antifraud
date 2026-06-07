@@ -1,0 +1,27 @@
+services:
+  asr:
+    build:
+      context: ../../..
+      dockerfile: docs/docker/asr/Dockerfile
+    image: service-antifraud-asr:latest
+    container_name: service-antifraud-asr
+    restart: unless-stopped
+    environment:
+      ASR_MODEL_SIZE: "${ASR_MODEL_SIZE:-tiny}"
+      ASR_DEVICE: cpu
+      ASR_COMPUTE_TYPE: int8
+      ASR_CPU_THREADS: "${ASR_CPU_THREADS:-1}"
+    volumes:
+      - service_antifraud_asr_models:/models
+    networks:
+      default:
+        aliases:
+          - service-antifraud-asr
+
+networks:
+  default:
+    name: "${ASR_DOCKER_NETWORK:-laradock_backend}"
+    external: true
+
+volumes:
+  service_antifraud_asr_models:

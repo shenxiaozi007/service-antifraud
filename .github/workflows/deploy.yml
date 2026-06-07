@@ -30,7 +30,6 @@ jobs:
             
             # 获取更新前后的 composer.json / composer.lock 差异状态
             COMPOSER_CHANGED=$(git diff --name-only HEAD origin/master | grep -E 'composer\.(json|lock)$' || true)
-            ASR_CHANGED=$(git diff --name-only HEAD origin/master | grep -E '^(apps/asr/|docs/docker/asr/)' || true)
             
             git reset --hard origin/master
 
@@ -53,58 +52,7 @@ jobs:
               fi
             done
             
-            # 4. 启动/更新本机轻量 ASR 服务
-            cd $BASE_DIR
-            if [ -n "$ASR_CHANGED" ] || ! docker image inspect service-antifraud-asr:latest >/dev/null 2>&1; then
-              echo "开始构建 ASR 镜像"
-              docker build -f docs/docker/asr/Dockerfile -t service-antifraud-asr:latest .
-            else
-              echo "ASR 镜像无变化，跳过构建"
-            fi
-            docker rm -f service-antifraud-asr || true
-
-            cd $LARADOCK_DIR
-            PHP_FPM_CONTAINER=$(docker-compose ps -q php-fpm)
-            if [ -z "$PHP_FPM_CONTAINER" ]; then
-              PHP_FPM_CONTAINER=$(docker ps --format '{{.ID}} {{.Names}}' | awk '/php-fpm/ {print $1; exit}')
-            fi
-            if [ -n "$PHP_FPM_CONTAINER" ]; then
-              PHP_FPM_NETWORKS=$(docker inspect -f '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' "$PHP_FPM_CONTAINER")
-              DOCKER_NETWORK=$(printf '%s\n' "$PHP_FPM_NETWORKS" | head -n 1)
-            else
-              PHP_FPM_NETWORKS=""
-              DOCKER_NETWORK=""
-            fi
-
-            if [ -z "$DOCKER_NETWORK" ]; then
-              DOCKER_NETWORK=bridge
-            fi
-
-            DOCKER_RUN_NETWORK_OPTIONS="--network $DOCKER_NETWORK"
-            if [ "$DOCKER_NETWORK" != "bridge" ]; then
-              DOCKER_RUN_NETWORK_OPTIONS="$DOCKER_RUN_NETWORK_OPTIONS --network-alias service-antifraud-asr"
-            fi
-
-            docker run -d \
-              --name service-antifraud-asr \
-              --restart unless-stopped \
-              $DOCKER_RUN_NETWORK_OPTIONS \
-              -e ASR_MODEL_SIZE="${ASR_MODEL_SIZE:-tiny}" \
-              -e ASR_DEVICE=cpu \
-              -e ASR_COMPUTE_TYPE=int8 \
-              -e ASR_CPU_THREADS="${ASR_CPU_THREADS:-1}" \
-              -v service_antifraud_asr_models:/models \
-              service-antifraud-asr:latest
-
-            if [ -n "$PHP_FPM_NETWORKS" ]; then
-              for NETWORK in $PHP_FPM_NETWORKS; do
-                if [ "$NETWORK" != "$DOCKER_NETWORK" ]; then
-                  docker network connect --alias service-antifraud-asr "$NETWORK" service-antifraud-asr || true
-                fi
-              done
-            fi
-
-            # 5. 确保反诈服务可通过 Docker 网络访问 ASR
+            # 4. 确保反诈服务可通过 Docker 网络访问独立 ASR 服务
             ANT_ENV="$BASE_DIR/www/service.antifraud.local.com/.env"
             if [ -f "$ANT_ENV" ]; then
               if grep -q '^ASR_SERVICE_URL=' "$ANT_ENV"; then
@@ -114,7 +62,7 @@ jobs:
               fi
             fi
 
-            # 6. 重启 PHP-FPM 与队列 worker，使新配置和新代码生效
+            # 5. 重启 PHP-FPM 与队列 worker，使新配置和新代码生效
             cd $LARADOCK_DIR
             docker-compose restart php-fpm
             docker-compose restart php-worker || true
