@@ -56,23 +56,40 @@ jobs:
             cd $BASE_DIR
             docker build -f docs/docker/asr/Dockerfile -t service-antifraud-asr:latest .
             docker rm -f service-antifraud-asr || true
-            DOCKER_NETWORK=$(docker network ls --format '{{.Name}}' | grep -E '^laradock_(backend|default)$' | head -n 1)
-            if [ -z "$DOCKER_NETWORK" ]; then
-              DOCKER_NETWORK=$(docker network ls --format '{{.Name}}' | grep 'laradock' | head -n 1)
+
+            cd $LARADOCK_DIR
+            PHP_FPM_CONTAINER=$(docker-compose ps -q php-fpm)
+            if [ -n "$PHP_FPM_CONTAINER" ]; then
+              PHP_FPM_NETWORKS=$(docker inspect -f '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' "$PHP_FPM_CONTAINER")
+              DOCKER_NETWORK=$(printf '%s\n' "$PHP_FPM_NETWORKS" | head -n 1)
+            else
+              PHP_FPM_NETWORKS=""
+              DOCKER_NETWORK=""
             fi
+
             if [ -z "$DOCKER_NETWORK" ]; then
               DOCKER_NETWORK=bridge
             fi
+
             docker run -d \
               --name service-antifraud-asr \
               --restart unless-stopped \
               --network "$DOCKER_NETWORK" \
+              --network-alias service-antifraud-asr \
               -e ASR_MODEL_SIZE="${ASR_MODEL_SIZE:-tiny}" \
               -e ASR_DEVICE=cpu \
               -e ASR_COMPUTE_TYPE=int8 \
               -e ASR_CPU_THREADS="${ASR_CPU_THREADS:-1}" \
               -v service_antifraud_asr_models:/models \
               service-antifraud-asr:latest
+
+            if [ -n "$PHP_FPM_NETWORKS" ]; then
+              for NETWORK in $PHP_FPM_NETWORKS; do
+                if [ "$NETWORK" != "$DOCKER_NETWORK" ]; then
+                  docker network connect --alias service-antifraud-asr "$NETWORK" service-antifraud-asr || true
+                fi
+              done
+            fi
 
             # 5. 确保反诈服务可通过 Docker 网络访问 ASR
             ANT_ENV="$BASE_DIR/www/service.antifraud.local.com/.env"
