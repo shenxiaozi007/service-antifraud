@@ -4,6 +4,7 @@ namespace App\Modules\Service;
 
 use App\Kernel\Base\BaseBusiness;
 use App\Libraries\CommonService\CommonServiceClient;
+use App\Modules\Basics\Constant\PointConstant;
 use App\Modules\Basics\Dao\UserDao;
 use Carbon\Carbon;
 
@@ -96,12 +97,32 @@ class AuthBusiness extends BaseBusiness
 
         if (!$user) {
             $data['points_balance'] = 0;
-            return $this->userDao->create($data);
+            $user = $this->userDao->create($data);
+            $this->commonServiceClient->reward(
+                (int) $globalUser['id'],
+                PointConstant::NEW_USER_GIFT_POINTS,
+                $this->newUserGiftRelatedNo((int) $globalUser['id']),
+                PointConstant::TYPE_GIFT,
+                '新用户注册赠送'
+            );
+
+            return $user;
         }
 
         $user->fill($data)->save();
 
         return $user;
+    }
+
+    /**
+     * 生成新用户赠送积分幂等编号。
+     *
+     * @param int $globalUserId 公共用户 ID
+     * @return string
+     */
+    protected function newUserGiftRelatedNo(int $globalUserId): string
+    {
+        return 'new_user_'.config('common_service.project_code', 'antifraud').'_'.$globalUserId;
     }
 
     public function formatUser($user): array

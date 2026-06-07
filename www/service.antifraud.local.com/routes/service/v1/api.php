@@ -17,6 +17,8 @@ $router->get('analysis/{recordId}', 'AnalysisController@detail');
 $router->get('analysis-records', 'AnalysisController@records');
 $router->delete('analysis/{recordId}', 'AnalysisController@delete');
 $router->get('points/transactions', 'PointController@transactions');
+$router->post('points/ad-reward', 'PointController@adReward');
+$router->post('points/check-in', 'PointController@checkIn');
 $router->get('payments/packages', 'PaymentController@packages');
 $router->post('payments/wechat/order', 'PaymentController@wechatOrder');
 $router->post('payments/alipay/order', 'PaymentController@alipayOrder');

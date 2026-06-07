@@ -55,4 +55,19 @@ class WalletController extends BaseController
 
         return $this->revert($business->release($request->all()));
     }
+
+    /**
+     * 服务端奖励积分入账。
+     *
+     * @param Request $request HTTP 请求
+     * @param WalletBusiness $business 钱包业务
+     * @param ServiceGuard $serviceGuard 服务鉴权
+     * @return mixed
+     */
+    public function reward(Request $request, WalletBusiness $business, ServiceGuard $serviceGuard)
+    {
+        $serviceGuard->verify($request);
+
+        return $this->revert($business->reward($request->all()));
+    }
 }

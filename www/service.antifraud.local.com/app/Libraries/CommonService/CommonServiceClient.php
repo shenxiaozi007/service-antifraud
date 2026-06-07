@@ -88,6 +88,26 @@ class CommonServiceClient
         ]);
     }
 
+    public function reward(int $globalUserId, int $amount, string $relatedNo, string $type, string $remark): array
+    {
+        return $this->request('post', 'wallet/reward', [
+            'user_id' => $globalUserId,
+            'project_code' => $this->projectCode(),
+            'amount' => $amount,
+            'related_no' => $relatedNo,
+            'type' => $type,
+            'remark' => $remark,
+        ]);
+    }
+
+    public function adReward(int $globalUserId, array $params): array
+    {
+        return $this->request('post', 'ad/reward', array_merge([
+            'user_id' => $globalUserId,
+            'project_code' => $this->projectCode(),
+        ], $params));
+    }
+
     public function paymentPackages(array $params = []): array
     {
         return $this->request('get', 'payment/packages', array_merge(['project_code' => $this->projectCode()], $params));

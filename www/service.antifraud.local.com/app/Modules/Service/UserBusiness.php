@@ -4,6 +4,7 @@ namespace App\Modules\Service;
 
 use App\Kernel\Base\BaseBusiness;
 use App\Libraries\CommonService\CommonServiceClient;
+use App\Modules\Basics\Constant\PointConstant;
 use App\Modules\Basics\Dao\UserDao;
 use Illuminate\Http\Request;
 
@@ -39,6 +40,13 @@ class UserBusiness extends BaseBusiness
                 'api_token' => $token,
                 'last_login_at' => now(),
             ]);
+            $this->commonServiceClient->reward(
+                (int) $globalUser['id'],
+                PointConstant::NEW_USER_GIFT_POINTS,
+                'new_user_'.config('common_service.project_code', 'antifraud').'_'.(int) $globalUser['id'],
+                PointConstant::TYPE_GIFT,
+                '新用户注册赠送'
+            );
         }
 
         return $user;

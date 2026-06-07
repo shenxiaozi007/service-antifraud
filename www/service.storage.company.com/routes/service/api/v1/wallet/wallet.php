@@ -15,5 +15,6 @@ $router->group(
         $router->post('freeze', 'WalletController@freeze');
         $router->post('confirm', 'WalletController@confirm');
         $router->post('release', 'WalletController@release');
+        $router->post('reward', 'WalletController@reward');
     }
 );

@@ -96,6 +96,44 @@ class CommonServiceClientTest extends TestCase
         $this->assertSame('token-1', $client->lastToken);
     }
 
+    public function test_common_service_client_proxies_reward_paths_with_project_code(): void
+    {
+        config(['common_service.project_code' => 'antifraud']);
+
+        $client = new InMemoryCommonServiceClientForTransactions();
+
+        $client->reward(20001, 500, 'new_user_antifraud_20001', 'gift', '新用户注册赠送');
+        $this->assertSame('post', $client->lastMethod);
+        $this->assertSame('wallet/reward', $client->lastPath);
+        $this->assertSame([
+            'user_id' => 20001,
+            'project_code' => 'antifraud',
+            'amount' => 500,
+            'related_no' => 'new_user_antifraud_20001',
+            'type' => 'gift',
+            'remark' => '新用户注册赠送',
+        ], $client->lastParams);
+
+        $client->adReward(20001, [
+            'idempotency_key' => 'wechat_reward_1',
+            'scene' => 'daily_points',
+            'platform' => 'wechat',
+            'reward_points' => 10,
+            'daily_limit' => 5,
+        ]);
+        $this->assertSame('post', $client->lastMethod);
+        $this->assertSame('ad/reward', $client->lastPath);
+        $this->assertSame([
+            'user_id' => 20001,
+            'project_code' => 'antifraud',
+            'idempotency_key' => 'wechat_reward_1',
+            'scene' => 'daily_points',
+            'platform' => 'wechat',
+            'reward_points' => 10,
+            'daily_limit' => 5,
+        ], $client->lastParams);
+    }
+
 }
 class InMemoryCommonServiceClientForTransactions extends CommonServiceClient
 {

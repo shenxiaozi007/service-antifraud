@@ -16,4 +16,24 @@ class PointController extends BaseController
     {
         return $this->revert($this->business->transactions($this->request));
     }
+
+    /**
+     * 领取观看广告积分奖励。
+     *
+     * @return mixed
+     */
+    public function adReward()
+    {
+        return $this->revert($this->business->adReward($this->request));
+    }
+
+    /**
+     * 每日签到领取积分。
+     *
+     * @return mixed
+     */
+    public function checkIn()
+    {
+        return $this->revert($this->business->checkIn($this->request));
+    }
 }

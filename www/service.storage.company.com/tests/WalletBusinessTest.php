@@ -118,6 +118,39 @@ class WalletBusinessTest extends TestCase
         $this->assertSame('antifraud', $result['items'][0]['project_code']);
         $this->assertSame('pay_1', $result['items'][0]['related_no']);
     }
+
+    public function test_wallet_reward_adds_balance_once_by_related_no_and_type(): void
+    {
+        DB::shouldReceive('transaction')->andReturnUsing(fn (callable $callback) => $callback());
+
+        $wallet = new InMemoryWallet(1, 'antifraud', 0, 0);
+        $transactions = new InMemoryWalletTransactions();
+        $business = new WalletBusiness(
+            new InMemoryProjectWalletDao($wallet),
+            $transactions
+        );
+
+        $rewarded = $business->reward([
+            'user_id' => 1,
+            'project_code' => 'antifraud',
+            'amount' => 500,
+            'related_no' => 'new_user_antifraud_1',
+            'type' => 'gift',
+            'remark' => '新用户注册赠送',
+        ]);
+        $duplicate = $business->reward([
+            'user_id' => 1,
+            'project_code' => 'antifraud',
+            'amount' => 500,
+            'related_no' => 'new_user_antifraud_1',
+            'type' => 'gift',
+        ]);
+
+        $this->assertSame(500, $rewarded['balance']);
+        $this->assertSame(500, $duplicate['balance']);
+        $this->assertCount(1, $transactions->items);
+        $this->assertSame('gift', $transactions->items[0]['type']);
+    }
 }
 
 class InMemoryProjectWalletDao extends ProjectWalletDao

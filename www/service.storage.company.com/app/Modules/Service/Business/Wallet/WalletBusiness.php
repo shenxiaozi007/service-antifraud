@@ -154,15 +154,58 @@ class WalletBusiness
 
     public function recharge(int $userId, string $projectCode, int $amount, string $relatedNo, string $remark = ''): array
     {
-        return DB::transaction(function () use ($userId, $projectCode, $amount, $relatedNo, $remark) {
-            if ($this->transactionDao->existsRelated($relatedNo, 'recharge')) {
+        return $this->addBalance($userId, $projectCode, $amount, $relatedNo, 'recharge', $remark ?: '充值到账');
+    }
+
+    /**
+     * 服务端奖励积分入账。
+     *
+     * @param array $params 奖励参数：user_id/project_code/amount/related_no/type/remark
+     * @return array{user_id:int,project_code:string,balance:int,frozen_balance:int}
+     */
+    public function reward(array $params): array
+    {
+        $data = validator($params, [
+            'user_id' => 'required|integer|min:1',
+            'project_code' => 'required|string|max:64',
+            'amount' => 'required|integer|min:1',
+            'related_no' => 'required|string|max:64',
+            'type' => 'nullable|string|max:32',
+            'remark' => 'nullable|string|max:255',
+        ])->validate();
+
+        return $this->addBalance(
+            (int) $data['user_id'],
+            $data['project_code'],
+            (int) $data['amount'],
+            $data['related_no'],
+            $data['type'] ?? 'reward',
+            $data['remark'] ?? '奖励到账'
+        );
+    }
+
+    /**
+     * 增加用户项目钱包可用积分。
+     *
+     * @param int $userId 用户 ID
+     * @param string $projectCode 项目编码
+     * @param int $amount 增加点数
+     * @param string $relatedNo 业务幂等编号
+     * @param string $type 流水类型
+     * @param string $remark 流水备注
+     * @return array{user_id:int,project_code:string,balance:int,frozen_balance:int}
+     */
+    protected function addBalance(int $userId, string $projectCode, int $amount, string $relatedNo, string $type, string $remark): array
+    {
+        return DB::transaction(function () use ($userId, $projectCode, $amount, $relatedNo, $type, $remark) {
+            if ($this->transactionDao->existsRelated($relatedNo, $type)) {
                 return $this->formatWallet($this->firstOrCreateWallet($userId, $projectCode));
             }
 
             $wallet = $this->lockOrCreateWallet($userId, $projectCode);
             $wallet->balance += $amount;
             $wallet->save();
-            $this->record($wallet, $relatedNo, $amount, 0, 'recharge', $remark ?: '充值到账');
+            $this->record($wallet, $relatedNo, $amount, 0, $type, $remark);
 
             return $this->formatWallet($wallet);
         });

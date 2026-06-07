@@ -21,6 +21,7 @@ class RouteServiceProvider extends ServiceProvider
                         'routes/service/api/v1/file/file.php',
                         'routes/service/api/v1/wallet/wallet.php',
                         'routes/service/api/v1/payment/payment.php',
+                        'routes/service/api/v1/ad/ad.php',
                     ],
                 ],
             ],
