@@ -121,8 +121,20 @@
   border-bottom: none;
 }
 
+
 .empty {
   padding: 80rpx 24rpx;
   text-align: center;
   color: #86868b;
+}
+
+.loading-text {
+  padding: 32rpx 0;
+  color: #86868b;
+  text-align: center;
+}
+
+.disabled {
+  opacity: 0.66;
+  pointer-events: none;
 }

@@ -4,15 +4,33 @@ import { ensureLogin } from '@/stores/session';
 import '@/styles/common.scss';
 
 onShow(() => {
-  void ensureLogin();
+  void ensureLogin().catch(() => {
+    // 业务逻辑：未登录也允许浏览首页，但点击分析入口时再引导登录，避免刷新首页出现异常提示
+  });
 });
 
-function goImage() {
-  uni.navigateTo({ url: '/pages/image/index' });
+// 方法：进入分析功能前确认登录态，未登录时引导到“我的”页完成登录
+async function ensureBeforeAnalyze() {
+  try {
+    await ensureLogin();
+    return true;
+  } catch (error) {
+    uni.showToast({ title: '请先登录', icon: 'none' });
+    uni.switchTab({ url: '/pages/me/index' });
+    return false;
+  }
 }
 
-function goAudio() {
-  uni.navigateTo({ url: '/pages/audio/index' });
+async function goImage() {
+  if (await ensureBeforeAnalyze()) {
+    uni.navigateTo({ url: '/pages/image/index' });
+  }
+}
+
+async function goAudio() {
+  if (await ensureBeforeAnalyze()) {
+    uni.navigateTo({ url: '/pages/audio/index' });
+  }
 }
 </script>
 

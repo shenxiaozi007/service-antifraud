@@ -22,6 +22,16 @@ export interface LoginResponse {
   is_new_user?: boolean;
 }
 
+export interface PasswordLoginDTO {
+  account: string;
+  password: string;
+}
+
+export interface PasswordRegisterDTO extends PasswordLoginDTO {
+  password_confirmation: string;
+  nickname?: string;
+}
+
 export interface UploadTokenResponse {
   upload_url: string;
   upload_method: 'multipart';
@@ -120,8 +130,35 @@ export interface PaymentPackage {
   amount_cent: number;
 }
 
+export interface WechatPaymentParams {
+  appId?: string;
+  timeStamp?: string;
+  nonceStr?: string;
+  package?: string;
+  signType?: string;
+  paySign?: string;
+  prepay_id?: string;
+  mock?: boolean;
+}
+
+export interface AlipayPaymentParams {
+  qr_code: string;
+  order_no: string;
+  trade_no?: string;
+  mock?: boolean;
+}
+
 export interface PaymentOrderResponse {
   order_no: string;
   status: string;
-  payment_params: Record<string, string | boolean>;
+  payment_params: WechatPaymentParams | AlipayPaymentParams;
+}
+
+export interface PaymentOrderStatus {
+  order_no: string;
+  status: string;
+  channel: 'wechat' | 'alipay' | string;
+  amount_cent: number;
+  points: number;
+  paid_at: string | null;
 }

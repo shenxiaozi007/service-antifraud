@@ -16,7 +16,10 @@ const loading = ref(false);
 const canSubmit = computed(() => images.value.length > 0 && !loading.value);
 
 onLoad(() => {
-  void ensureLogin();
+  void ensureLogin().catch(() => {
+    uni.showToast({ title: '请先登录', icon: 'none' });
+    uni.switchTab({ url: '/pages/me/index' });
+  });
 });
 
 function chooseImage() {
@@ -57,6 +60,8 @@ async function submit() {
     });
 
     uni.navigateTo({ url: `/pages/report/index?record_id=${result.record_id}` });
+  } catch (error) {
+    uni.showToast({ title: error instanceof Error ? error.message : '提交分析失败', icon: 'none' });
   } finally {
     loading.value = false;
     uni.hideLoading();

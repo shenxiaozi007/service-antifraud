@@ -21,6 +21,8 @@ class ExampleTest extends TestCase
     {
         $routes = app('router')->getRoutes();
         $this->assertArrayHasKey('GET/service/api/v1/payment/packages', $routes);
+        $this->assertArrayHasKey('POST/service/api/v1/payment/alipay/precreate-order', $routes);
+        $this->assertArrayHasKey('GET/service/api/v1/payment/orders/{orderNo}', $routes);
     }
 
     public function test_wechat_notify_returns_official_success_shape_in_mock_mode(): void

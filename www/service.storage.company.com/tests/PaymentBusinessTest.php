@@ -142,6 +142,84 @@ class PaymentBusinessTest extends TestCase
         ], [], '{"out_trade_no":"pay_mvp_signature"}');
     }
 
+    public function test_alipay_precreate_order_returns_mock_qr_code(): void
+    {
+        config(['payment.alipay.mock' => true]);
+
+        $business = new PaymentBusiness(
+            new InMemoryPaymentPackageDaoWithPackage(),
+            new InMemoryPaymentOrderStoreDao(),
+            new InMemoryPaymentWallet(),
+            new InMemoryPaymentIdentityDao()
+        );
+
+        $result = $business->alipayPrecreateOrder(10001, [
+            'project_code' => 'antifraud',
+            'package_id' => 1,
+        ]);
+
+        $this->assertSame('pending', $result['status']);
+        $this->assertStringStartsWith('pay_', $result['order_no']);
+        $this->assertStringStartsWith('https://qr.alipay.com/mock-', $result['payment_params']['qr_code']);
+        $this->assertTrue($result['payment_params']['mock']);
+    }
+
+    public function test_alipay_notify_marks_order_paid_and_recharges_wallet_once(): void
+    {
+        config(['payment.alipay.mock' => true]);
+        DB::shouldReceive('transaction')->andReturnUsing(fn (callable $callback) => $callback());
+
+        $order = new InMemoryPaymentOrder('pay_alipay_1', 'pending');
+        $order->channel = 'alipay';
+        $wallet = new InMemoryPaymentWallet();
+        $business = new PaymentBusiness(
+            new InMemoryPaymentPackageDao(),
+            new InMemoryPaymentOrderDao($order),
+            $wallet,
+            new InMemoryPaymentIdentityDao()
+        );
+
+        $result = $business->alipayNotify([
+            'out_trade_no' => 'pay_alipay_1',
+            'trade_no' => 'ali_trade_1',
+            'trade_status' => 'TRADE_SUCCESS',
+            'total_amount' => '9.90',
+        ]);
+
+        $this->assertTrue($result['success']);
+        $this->assertSame('paid', $order->status);
+        $this->assertSame('ali_trade_1', $order->transaction_id);
+        $this->assertSame(1, $wallet->rechargeCount);
+        $this->assertSame('支付宝支付充值', $wallet->lastRecharge['remark']);
+    }
+
+    public function test_alipay_notify_rejects_amount_mismatch_without_recharge(): void
+    {
+        config(['payment.alipay.mock' => true]);
+        DB::shouldReceive('transaction')->andReturnUsing(fn (callable $callback) => $callback());
+
+        $order = new InMemoryPaymentOrder('pay_alipay_amount', 'pending');
+        $order->channel = 'alipay';
+        $wallet = new InMemoryPaymentWallet();
+        $business = new PaymentBusiness(
+            new InMemoryPaymentPackageDao(),
+            new InMemoryPaymentOrderDao($order),
+            $wallet,
+            new InMemoryPaymentIdentityDao()
+        );
+
+        $this->expectException(ValidationException::class);
+
+        try {
+            $business->alipayNotify([
+                'out_trade_no' => 'pay_alipay_amount',
+                'trade_status' => 'TRADE_SUCCESS',
+                'total_amount' => '0.01',
+            ]);
+        } finally {
+            $this->assertSame(0, $wallet->rechargeCount);
+        }
+    }
     public function test_default_antifraud_packages_seed_three_rows(): void
     {
         $database = '/private/tmp/storage_payment_packages_test.sqlite';
@@ -179,6 +257,44 @@ class InMemoryPaymentPackageDao extends PaymentPackageDao
 {
     public function __construct()
     {
+    }
+}
+
+class InMemoryPaymentPackageDaoWithPackage extends PaymentPackageDao
+{
+    public function __construct()
+    {
+    }
+
+    public function find($id, array $columns = [])
+    {
+        $package = new PaymentPackage();
+        $package->id = (int) $id;
+        $package->project_code = 'antifraud';
+        $package->name = '测试套餐';
+        $package->points = 100;
+        $package->amount_cent = 990;
+        $package->enabled = 1;
+
+        return $package;
+    }
+}
+
+class InMemoryPaymentOrderStoreDao extends PaymentOrderDao
+{
+    public ?InMemoryPaymentOrder $storedOrder = null;
+
+    public function __construct()
+    {
+    }
+
+    public function store(array $params, array $extra = []): \Illuminate\Database\Eloquent\Model
+    {
+        $order = new InMemoryPaymentOrder((string) $params['order_no'], (string) $params['status']);
+        $order->fill($params);
+        $this->storedOrder = $order;
+
+        return $order;
     }
 }
 

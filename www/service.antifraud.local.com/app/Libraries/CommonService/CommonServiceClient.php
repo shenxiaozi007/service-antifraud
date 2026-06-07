@@ -27,6 +27,16 @@ class CommonServiceClient
         return $this->request('post', 'auth/code-login', $params);
     }
 
+    public function passwordRegister(array $params): array
+    {
+        return $this->request('post', 'auth/password-register', $params);
+    }
+
+    public function passwordLogin(array $params): array
+    {
+        return $this->request('post', 'auth/password-login', $params);
+    }
+
     public function balance(string $token): array
     {
         return $this->request('get', 'wallet/balance', ['project_code' => $this->projectCode()], $token);
@@ -86,6 +96,16 @@ class CommonServiceClient
     public function wechatOrder(string $token, array $params): array
     {
         return $this->request('post', 'payment/wechat/jsapi-order', array_merge(['project_code' => $this->projectCode()], $params), $token);
+    }
+
+    public function alipayOrder(string $token, array $params): array
+    {
+        return $this->request('post', 'payment/alipay/precreate-order', array_merge(['project_code' => $this->projectCode()], $params), $token);
+    }
+
+    public function paymentOrder(string $token, string $orderNo): array
+    {
+        return $this->request('get', 'payment/orders/'.$orderNo, ['project_code' => $this->projectCode()], $token);
     }
 
     public function fileDownloadUrl(string $fileId, int $expires = 600): array

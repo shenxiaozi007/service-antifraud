@@ -22,7 +22,10 @@ const canSubmit = computed(() => !loading.value && (Boolean(audioPath.value) || 
 const displayDuration = computed(() => durationText(duration.value));
 
 onLoad(() => {
-  void ensureLogin();
+  void ensureLogin().catch(() => {
+    uni.showToast({ title: '请先登录', icon: 'none' });
+    uni.switchTab({ url: '/pages/me/index' });
+  });
   recorder.onStop((result) => {
     clearTimer();
     duration.value = Math.max(1, Math.ceil((Date.now() - startedAt.value) / 1000));
@@ -158,6 +161,8 @@ async function submit() {
     });
 
     uni.navigateTo({ url: `/pages/report/index?record_id=${result.record_id}` });
+  } catch (error) {
+    uni.showToast({ title: error instanceof Error ? error.message : '提交分析失败', icon: 'none' });
   } finally {
     loading.value = false;
     uni.hideLoading();

@@ -10,30 +10,57 @@ import '@/styles/common.scss';
 const records = ref<AnalysisRecord[]>([]);
 const filter = ref<RiskLevel | ''>('');
 const type = ref<AnalysisType | ''>('');
+const loading = ref(false);
+const loadError = ref('');
 
 onShow(async () => {
-  await ensureLogin();
-  await loadRecords();
+  try {
+    await ensureLogin();
+    await loadRecords();
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : '请先登录后查看历史记录';
+    uni.showToast({ title: loadError.value, icon: 'none' });
+  }
 });
 
-// 方法：按当前筛选条件拉取历史列表，列表状态跟随异步分析任务实时展示
+// 方法：按当前筛选条件拉取历史列表，使用 loading 防止切筛选时重复请求造成卡顿
 async function loadRecords() {
-  const result = await getRecords({
-    risk_level: filter.value,
-    type: type.value,
-    page_size: 50
-  });
-  records.value = result.items;
+  if (loading.value) {
+    return;
+  }
+
+  loading.value = true;
+  loadError.value = '';
+  try {
+    const result = await getRecords({
+      risk_level: filter.value,
+      type: type.value,
+      page_size: 50
+    });
+    records.value = result.items;
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : '历史记录加载失败';
+  } finally {
+    loading.value = false;
+  }
 }
 
 // 方法：切换风险筛选，成功记录才展示风险等级，其他状态展示任务状态
 function changeFilter(next: RiskLevel | '') {
+  if (loading.value || filter.value === next) {
+    return;
+  }
+
   filter.value = next;
   void loadRecords();
 }
 
 // 方法：切换图片/录音类型筛选，再次点击同类型时取消筛选
 function changeType(next: AnalysisType) {
+  if (loading.value) {
+    return;
+  }
+
   type.value = type.value === next ? '' : next;
   void loadRecords();
 }
@@ -73,7 +100,7 @@ function pointText(item: AnalysisRecord) {
   <view class="page">
     <view class="section row">
       <view class="title small">历史记录</view>
-      <view class="tag" @tap="loadRecords">刷新</view>
+      <view class="tag" :class="{ disabled: loading }" @tap="loadRecords">{{ loading ? '刷新中' : '刷新' }}</view>
     </view>
 
     <view class="filters">
@@ -84,14 +111,18 @@ function pointText(item: AnalysisRecord) {
     </view>
 
     <view class="card">
-      <view v-if="!records.length" class="empty">还没有分析记录</view>
-      <view v-for="item in records" :key="item.id" class="list-item" @tap="goReport(item.id)">
-        <view class="row">
-          <view class="record-title">{{ item.title }}</view>
-          <view class="tag" :class="recordTag(item).className">{{ recordTag(item).text }}</view>
+      <view v-if="loading" class="empty">正在加载历史记录...</view>
+      <view v-else-if="loadError" class="empty">{{ loadError }}</view>
+      <view v-else-if="!records.length" class="empty">还没有分析记录</view>
+      <block v-else>
+        <view v-for="item in records" :key="item.id" class="list-item" @tap="goReport(item.id)">
+          <view class="row">
+            <view class="record-title">{{ item.title }}</view>
+            <view class="tag" :class="recordTag(item).className">{{ recordTag(item).text }}</view>
+          </view>
+          <view class="muted">{{ item.type === 'image' ? '帮您看' : '帮您听' }} · {{ item.created_at }} · {{ pointText(item) }}</view>
         </view>
-        <view class="muted">{{ item.type === 'image' ? '帮您看' : '帮您听' }} · {{ item.created_at }} · {{ pointText(item) }}</view>
-      </view>
+      </block>
     </view>
   </view>
 </template>

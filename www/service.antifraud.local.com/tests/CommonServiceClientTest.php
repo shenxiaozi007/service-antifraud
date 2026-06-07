@@ -69,11 +69,36 @@ class CommonServiceClientTest extends TestCase
         ], $client->lastParams);
         $this->assertSame('', $client->lastToken);
     }
-}
 
+    public function test_common_service_client_proxies_new_auth_and_alipay_paths(): void
+    {
+        config(['common_service.project_code' => 'antifraud']);
+
+        $client = new InMemoryCommonServiceClientForTransactions();
+
+        $client->passwordRegister(['account' => 'new@example.com']);
+        $this->assertSame('post', $client->lastMethod);
+        $this->assertSame('auth/password-register', $client->lastPath);
+
+        $client->passwordLogin(['account' => 'new@example.com']);
+        $this->assertSame('post', $client->lastMethod);
+        $this->assertSame('auth/password-login', $client->lastPath);
+
+        $client->alipayOrder('token-1', ['package_id' => 1]);
+        $this->assertSame('post', $client->lastMethod);
+        $this->assertSame('payment/alipay/precreate-order', $client->lastPath);
+        $this->assertSame(['project_code' => 'antifraud', 'package_id' => 1], $client->lastParams);
+        $this->assertSame('token-1', $client->lastToken);
+
+        $client->paymentOrder('token-1', 'pay_123');
+        $this->assertSame('get', $client->lastMethod);
+        $this->assertSame('payment/orders/pay_123', $client->lastPath);
+        $this->assertSame('token-1', $client->lastToken);
+    }
+
+}
 class InMemoryCommonServiceClientForTransactions extends CommonServiceClient
 {
-    public string $lastMethod = '';
     public string $lastPath = '';
     public array $lastParams = [];
     public string $lastToken = '';

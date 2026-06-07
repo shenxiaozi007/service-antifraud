@@ -10,6 +10,8 @@ class MvpApiRouteTest extends TestCase
 
         foreach ([
             'GET/api/v1/me',
+            'POST/api/v1/auth/password-register',
+            'POST/api/v1/auth/password-login',
             'POST/api/v1/files/register',
             'POST/api/v1/analysis/image',
             'POST/api/v1/analysis/audio',
@@ -19,6 +21,8 @@ class MvpApiRouteTest extends TestCase
             'GET/api/v1/points/transactions',
             'GET/api/v1/payments/packages',
             'POST/api/v1/payments/wechat/order',
+            'POST/api/v1/payments/alipay/order',
+            'GET/api/v1/payments/orders/{orderNo}',
             'GET/management/proxy/users',
             'GET/management/proxy/analysis-records',
             'GET/management/proxy/analysis-records/{recordId}',

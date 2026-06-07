@@ -22,6 +22,94 @@ class AuthBusiness
     ) {
     }
 
+    /**
+     * 使用邮箱或手机号注册密码账号，并返回登录态。
+     *
+     * @param array $params 注册参数，包含 account/password/password_confirmation/nickname
+     * @return array{token:string,user:array,is_new_user:bool}
+     */
+    public function passwordRegister(array $params): array
+    {
+        $data = validator($params, [
+            'account' => 'required|string|max:191',
+            'password' => 'required|string|min:8|max:64|confirmed',
+            'nickname' => 'nullable|string|max:128',
+        ], [], [
+            'account' => '邮箱或手机号',
+            'password' => '密码',
+            'nickname' => '昵称',
+        ])->validate();
+
+        $identityType = $this->identityTypeByAccount($data['account']);
+        $this->assertPasswordStrength($data['password']);
+
+        return DB::transaction(function () use ($data, $identityType) {
+            $identity = $this->identityDao->findIdentity($identityType, $data['account']);
+            if ($identity && (string) $identity->password_hash !== '') {
+                throw ValidationException::withMessages(['account' => '账号已注册，请直接登录']);
+            }
+
+            if ($identity) {
+                $user = $this->userDao->find($identity->user_id);
+                if (!$user || (int) $user->status !== 1) {
+                    throw ValidationException::withMessages(['account' => '账号已禁用或不存在']);
+                }
+
+                $identity->fill([
+                    'password_hash' => password_hash($data['password'], PASSWORD_BCRYPT),
+                    'password_updated_at' => Carbon::now(),
+                ])->save();
+                $user->fill([
+                    'nickname' => $data['nickname'] ?? $user->nickname,
+                    'last_login_at' => Carbon::now(),
+                ])->save();
+                $user->is_new_user = false;
+
+                return $this->loginResponse($user, 'password');
+            }
+
+            $user = $this->resolveUser($identityType, $data['account'], [
+                'nickname' => $data['nickname'] ?? $this->defaultNickname($data['account']),
+                'password_hash' => password_hash($data['password'], PASSWORD_BCRYPT),
+                'password_updated_at' => Carbon::now(),
+            ]);
+
+            return $this->loginResponse($user, 'password');
+        });
+    }
+
+    /**
+     * 使用邮箱或手机号和密码登录。
+     *
+     * @param array $params 登录参数，包含 account/password
+     * @return array{token:string,user:array,is_new_user:bool}
+     */
+    public function passwordLogin(array $params): array
+    {
+        $data = validator($params, [
+            'account' => 'required|string|max:191',
+            'password' => 'required|string|max:64',
+        ], [], [
+            'account' => '邮箱或手机号',
+            'password' => '密码',
+        ])->validate();
+
+        $identityType = $this->identityTypeByAccount($data['account']);
+        $identity = $this->identityDao->findIdentity($identityType, $data['account']);
+        if (!$identity || !password_verify($data['password'], (string) $identity->password_hash)) {
+            throw ValidationException::withMessages(['account' => '账号或密码错误']);
+        }
+
+        $user = $this->userDao->find($identity->user_id);
+        if (!$user || (int) $user->status !== 1) {
+            throw ValidationException::withMessages(['account' => '账号已禁用或不存在']);
+        }
+
+        $user->fill(['last_login_at' => Carbon::now()])->save();
+
+        return $this->loginResponse($user, 'password');
+    }
+
     public function sendCode(array $params): array
     {
         $data = validator($params, [
@@ -147,12 +235,17 @@ class AuthBusiness
         }
 
         if (!$identity) {
+            $identityExtra = $profile;
+            unset($identityExtra['password_hash'], $identityExtra['password_updated_at']);
+
             $this->identityDao->store([
                 'user_id' => $user->id,
                 'identity_type' => $type,
                 'identifier' => $identifier,
                 'unionid' => $profile['unionid'] ?? '',
-                'extra' => $profile,
+                'extra' => $identityExtra,
+                'password_hash' => $profile['password_hash'] ?? '',
+                'password_updated_at' => $profile['password_updated_at'] ?? null,
             ]);
         }
 
@@ -191,6 +284,38 @@ class AuthBusiness
     protected function defaultNickname(string $account): string
     {
         return '用户'.substr(md5($account), 0, 6);
+    }
+
+    /**
+     * 根据账号格式判断身份类型，仅允许邮箱或手机号注册登录。
+     *
+     * @param string $account 用户输入的邮箱或手机号
+     * @return string email 或 mobile
+     */
+    protected function identityTypeByAccount(string $account): string
+    {
+        if (filter_var($account, FILTER_VALIDATE_EMAIL)) {
+            return 'email';
+        }
+
+        if (preg_match('/^1[3-9]\d{9}$/', $account) === 1) {
+            return 'mobile';
+        }
+
+        throw ValidationException::withMessages(['account' => '请输入正确的邮箱或手机号']);
+    }
+
+    /**
+     * 校验密码复杂度，避免注册弱密码账号。
+     *
+     * @param string $password 用户输入的明文密码
+     * @return void
+     */
+    protected function assertPasswordStrength(string $password): void
+    {
+        if (!preg_match('/[A-Za-z]/', $password) || !preg_match('/\d/', $password)) {
+            throw ValidationException::withMessages(['password' => '密码需至少包含字母和数字']);
+        }
     }
 
     protected function dispatchVerificationCode(string $account, string $scene, string $code): void

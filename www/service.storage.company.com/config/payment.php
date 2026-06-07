@@ -14,4 +14,17 @@ return [
         'api_base_url' => env('WECHAT_PAY_API_BASE_URL', 'https://api.mch.weixin.qq.com'),
         'mock' => filter_var(env('WECHAT_PAY_MOCK', false), FILTER_VALIDATE_BOOL),
     ],
+
+    'alipay' => [
+        'app_id' => env('ALIPAY_APP_ID', ''),
+        'gateway_url' => env('ALIPAY_GATEWAY_URL', 'https://openapi.alipay.com/gateway.do'),
+        'app_private_key' => env('ALIPAY_APP_PRIVATE_KEY', ''),
+        'app_private_key_path' => env('ALIPAY_APP_PRIVATE_KEY_PATH', ''),
+        'alipay_public_key' => env('ALIPAY_PUBLIC_KEY', ''),
+        'alipay_public_key_path' => env('ALIPAY_PUBLIC_KEY_PATH', ''),
+        'notify_url' => env('ALIPAY_NOTIFY_URL', 'https://file.hxcbox.cn/service/api/v1/payment/alipay/notify'),
+        'return_url' => env('ALIPAY_RETURN_URL', ''),
+        'mock' => filter_var(env('ALIPAY_MOCK', false), FILTER_VALIDATE_BOOL),
+    ],
 ];
+

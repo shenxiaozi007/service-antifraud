@@ -54,6 +54,62 @@ class AuthBusinessTest extends TestCase
         $this->assertSame($login['user']['id'], $introspected['user']['id']);
     }
 
+    public function test_password_register_login_and_introspect_work_for_email_account(): void
+    {
+        $business = app(AuthBusiness::class);
+        $account = 'password-user@example.com';
+
+        $registered = $business->passwordRegister([
+            'account' => $account,
+            'password' => 'abc12345',
+            'password_confirmation' => 'abc12345',
+            'nickname' => '密码用户',
+        ]);
+        $login = $business->passwordLogin([
+            'account' => $account,
+            'password' => 'abc12345',
+        ]);
+
+        $this->assertNotEmpty($registered['token']);
+        $this->assertTrue($registered['is_new_user']);
+        $this->assertSame('密码用户', $registered['user']['nickname']);
+        $this->assertNotEmpty($login['token']);
+        $this->assertSame($registered['user']['id'], $login['user']['id']);
+        $this->assertTrue($business->introspect($login['token'])['active']);
+    }
+
+    public function test_password_register_rejects_duplicate_password_account(): void
+    {
+        $business = app(AuthBusiness::class);
+        $params = [
+            'account' => 'duplicate-password@example.com',
+            'password' => 'abc12345',
+            'password_confirmation' => 'abc12345',
+        ];
+
+        $business->passwordRegister($params);
+
+        $this->expectException(ValidationException::class);
+
+        $business->passwordRegister($params);
+    }
+
+    public function test_password_login_rejects_wrong_password(): void
+    {
+        $business = app(AuthBusiness::class);
+        $business->passwordRegister([
+            'account' => 'wrong-password@example.com',
+            'password' => 'abc12345',
+            'password_confirmation' => 'abc12345',
+        ]);
+
+        $this->expectException(ValidationException::class);
+
+        $business->passwordLogin([
+            'account' => 'wrong-password@example.com',
+            'password' => 'abc123456',
+        ]);
+    }
     public function test_wechat_login_reuses_openid_identity(): void
     {
         $business = app(AuthBusiness::class);

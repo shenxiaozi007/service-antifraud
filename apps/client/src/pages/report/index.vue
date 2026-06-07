@@ -8,6 +8,8 @@ import type { AnalysisRecord } from '@/types/api';
 import '@/styles/common.scss';
 
 const loading = ref(true);
+const polling = ref(false);
+const pollError = ref('');
 const recordId = ref(0);
 const report = ref<AnalysisRecord | null>(null);
 const pollCount = ref(0);
@@ -46,16 +48,21 @@ async function loadReport() {
 // 方法：pending/processing 状态自动轮询，避免用户进入报告页后看到空报告
 function schedulePolling() {
   stopPolling();
-  if (!isWaiting.value || pollCount.value >= 60) {
+  if (!isWaiting.value || pollCount.value >= 60 || polling.value) {
     return;
   }
 
   pollTimer = setTimeout(async () => {
     pollCount.value += 1;
+    polling.value = true;
+    pollError.value = '';
     try {
       await loadReport();
     } catch (error) {
+      pollError.value = '报告刷新失败，可手动重试';
       stopPolling();
+    } finally {
+      polling.value = false;
     }
   }, 2000);
 }
@@ -93,6 +100,7 @@ onShareAppMessage(() => ({
         <view class="summary">
           {{ isFailed ? report.error_message || '分析失败，点数已退回，可重新提交材料。' : '材料已提交，正在生成报告。' }}
         </view>
+        <view v-if="pollError" class="meta danger-text" @tap="loadReport">{{ pollError }}，点击重试</view>
         <view v-if="report.frozen_points" class="meta">冻结点数：{{ report.frozen_points }} 点</view>
       </view>
 

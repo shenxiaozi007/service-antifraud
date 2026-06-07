@@ -26,4 +26,24 @@ class AuthController extends BaseController
     {
         return $this->revert($this->business->codeLogin($this->request->all()));
     }
+
+    /**
+     * 使用邮箱或手机号密码注册。
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function passwordRegister()
+    {
+        return $this->revert($this->business->passwordRegister($this->request->all()));
+    }
+
+    /**
+     * 使用邮箱或手机号密码登录。
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function passwordLogin()
+    {
+        return $this->revert($this->business->passwordLogin($this->request->all()));
+    }
 }

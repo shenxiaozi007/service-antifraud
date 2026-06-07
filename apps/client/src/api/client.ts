@@ -8,7 +8,10 @@ import type {
   CreateAnalysisResponse,
   LoginResponse,
   PageResult,
+  PasswordLoginDTO,
+  PasswordRegisterDTO,
   PaymentOrderResponse,
+  PaymentOrderStatus,
   PaymentPackage,
   PointTransaction,
   RegisterFileResponse,
@@ -35,6 +38,16 @@ export function sendCode(data: Record<string, unknown>) {
 
 export function codeLogin(data: Record<string, unknown>) {
   return request<LoginResponse>({ url: '/api/v1/auth/code-login', method: 'POST', data });
+}
+
+// 方法：密码注册公共账号，给邮箱/手机号用户提供长期登录方式
+export function passwordRegister(data: PasswordRegisterDTO) {
+  return request<LoginResponse>({ url: '/api/v1/auth/password-register', method: 'POST', data });
+}
+
+// 方法：密码登录公共账号，避免每次都依赖验证码
+export function passwordLogin(data: PasswordLoginDTO) {
+  return request<LoginResponse>({ url: '/api/v1/auth/password-login', method: 'POST', data });
 }
 
 export function me() {
@@ -140,12 +153,27 @@ export function getTransactions() {
   return request<PageResult<PointTransaction>>({ url: '/api/v1/points/transactions' });
 }
 
+// 方法：创建微信支付订单，保留小程序和微信环境支付能力
 export function createPaymentOrder(data: Record<string, unknown>) {
   return request<PaymentOrderResponse>({
     url: '/api/v1/payments/wechat/order',
     method: 'POST',
     data
   });
+}
+
+// 方法：创建支付宝扫码支付订单，H5 展示二维码链接并轮询订单状态
+export function createAlipayOrder(data: Record<string, unknown>) {
+  return request<PaymentOrderResponse>({
+    url: '/api/v1/payments/alipay/order',
+    method: 'POST',
+    data
+  });
+}
+
+// 方法：查询支付订单状态，用于支付宝扫码支付轮询到账
+export function getPaymentOrder(orderNo: string) {
+  return request<PaymentOrderStatus>({ url: `/api/v1/payments/orders/${encodeURIComponent(orderNo)}` });
 }
 
 export function getPaymentPackages() {

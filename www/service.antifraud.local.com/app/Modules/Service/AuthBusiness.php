@@ -44,6 +44,42 @@ class AuthBusiness extends BaseBusiness
         ];
     }
 
+    /**
+     * 使用邮箱或手机号密码注册公共账号并同步本地用户。
+     *
+     * @param array $params 注册参数，包含 account/password/password_confirmation/nickname
+     * @return array{token:string,user:array,is_new_user:bool}
+     */
+    public function passwordRegister(array $params): array
+    {
+        $login = $this->commonServiceClient->passwordRegister($params);
+        $user = $this->syncLocalUser($login['user'], $login['token']);
+
+        return [
+            'token' => $login['token'],
+            'user' => $this->formatUser($user),
+            'is_new_user' => (bool) ($login['is_new_user'] ?? false),
+        ];
+    }
+
+    /**
+     * 使用邮箱或手机号密码登录公共账号并同步本地用户。
+     *
+     * @param array $params 登录参数，包含 account/password
+     * @return array{token:string,user:array,is_new_user:bool}
+     */
+    public function passwordLogin(array $params): array
+    {
+        $login = $this->commonServiceClient->passwordLogin($params);
+        $user = $this->syncLocalUser($login['user'], $login['token']);
+
+        return [
+            'token' => $login['token'],
+            'user' => $this->formatUser($user),
+            'is_new_user' => (bool) ($login['is_new_user'] ?? false),
+        ];
+    }
+
     public function syncLocalUser(array $globalUser, string $token)
     {
         $user = $this->userDao->findByGlobalUserId((int) $globalUser['id']);
