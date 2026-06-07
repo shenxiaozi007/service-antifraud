@@ -30,6 +30,7 @@ jobs:
             
             # 获取更新前后的 composer.json / composer.lock 差异状态
             COMPOSER_CHANGED=$(git diff --name-only HEAD origin/master | grep -E 'composer\.(json|lock)$' || true)
+            ASR_CHANGED=$(git diff --name-only HEAD origin/master | grep -E '^(apps/asr/|docs/docker/asr/)' || true)
             
             git reset --hard origin/master
 
@@ -54,7 +55,12 @@ jobs:
             
             # 4. 启动/更新本机轻量 ASR 服务
             cd $BASE_DIR
-            docker build -f docs/docker/asr/Dockerfile -t service-antifraud-asr:latest .
+            if [ -n "$ASR_CHANGED" ] || ! docker image inspect service-antifraud-asr:latest >/dev/null 2>&1; then
+              echo "开始构建 ASR 镜像"
+              docker build -f docs/docker/asr/Dockerfile -t service-antifraud-asr:latest .
+            else
+              echo "ASR 镜像无变化，跳过构建"
+            fi
             docker rm -f service-antifraud-asr || true
 
             cd $LARADOCK_DIR
